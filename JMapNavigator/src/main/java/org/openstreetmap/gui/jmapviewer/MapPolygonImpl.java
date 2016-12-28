@@ -19,94 +19,117 @@ import org.openstreetmap.gui.jmapviewer.interfaces.MapPolygon;
 
 public class MapPolygonImpl extends MapObjectImpl implements MapPolygon {
 
-    private List<? extends ICoordinate> points;
+	private List<? extends ICoordinate> points;
 
-    public MapPolygonImpl(ICoordinate ... points) {
-        this(null, null, points);
-    }
+	private final Color optColor;
 
-    public MapPolygonImpl(List<? extends ICoordinate> points) {
-        this(null, null, points);
-    }
+	public MapPolygonImpl(Color optColor, ICoordinate... points) {
+		this(optColor, null, null, points);
+	}
 
-    public MapPolygonImpl(String name, List<? extends ICoordinate> points) {
-        this(null, name, points);
-    }
+	public MapPolygonImpl(ICoordinate... points) {
+		this(null, null, points);
+	}
 
-    public MapPolygonImpl(String name, ICoordinate ... points) {
-        this(null, name, points);
-    }
+	public MapPolygonImpl(List<? extends ICoordinate> points) {
+		this(null, null, points);
+	}
 
-    public MapPolygonImpl(Layer layer, List<? extends ICoordinate> points) {
-        this(layer, null, points);
-    }
+	public MapPolygonImpl(String name, List<? extends ICoordinate> points) {
+		this(null, name, points);
+	}
 
-    public MapPolygonImpl(Layer layer, String name, List<? extends ICoordinate> points) {
-        this(layer, name, points, getDefaultStyle());
-    }
+	public MapPolygonImpl(String name, ICoordinate... points) {
+		this(null, name, points);
+	}
 
-    public MapPolygonImpl(Layer layer, String name, ICoordinate ... points) {
-        this(layer, name, Arrays.asList(points), getDefaultStyle());
-    }
+	public MapPolygonImpl(Layer layer, List<? extends ICoordinate> points) {
+		this(layer, null, points);
+	}
 
-    public MapPolygonImpl(Layer layer, String name, List<? extends ICoordinate> points, Style style) {
-        super(layer, name, style);
-        this.points = points;
-    }
+	public MapPolygonImpl(Layer layer, String name, List<? extends ICoordinate> points) {
+		this(layer, name, points, getDefaultStyle());
+	}
 
-    @Override
-    public List<? extends ICoordinate> getPoints() {
-        return this.points;
-    }
+	public MapPolygonImpl(Layer layer, String name, ICoordinate... points) {
+		this(layer, name, Arrays.asList(points), getDefaultStyle());
+	}
 
-    @Override
-    public void paint(Graphics g, List<Point> points) {
-        Polygon polygon = new Polygon();
-        for (Point p : points) {
-            polygon.addPoint(p.x, p.y);
-        }
-        paint(g, polygon);
-    }
+	public MapPolygonImpl(Color optColor, Layer layer, String name, ICoordinate... points) {
+		this(optColor, layer, name, Arrays.asList(points), getDefaultStyle());
+	}
 
-    @Override
-    public void paint(Graphics g, Polygon polygon) {
-        // Prepare graphics
-        Color oldColor = g.getColor();
-        g.setColor(getColor());
+	public MapPolygonImpl(Layer layer, String name, List<? extends ICoordinate> points, Style style) {
+		super(layer, name, style);
+		this.points = points;
+		this.optColor = null;
+	}
 
-        Stroke oldStroke = null;
-        if (g instanceof Graphics2D) {
-            Graphics2D g2 = (Graphics2D) g;
-            oldStroke = g2.getStroke();
-            g2.setStroke(getStroke());
-        }
-        // Draw
-        g.drawPolygon(polygon);
-        if (g instanceof Graphics2D && getBackColor() != null) {
-            Graphics2D g2 = (Graphics2D) g;
-            Composite oldComposite = g2.getComposite();
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
-            g2.setPaint(getBackColor());
-            g2.fillPolygon(polygon);
-            g2.setComposite(oldComposite);
-        }
-        // Restore graphics
-        g.setColor(oldColor);
-        if (g instanceof Graphics2D) {
-            ((Graphics2D) g).setStroke(oldStroke);
-        }
-        Rectangle rec = polygon.getBounds();
-        Point corner = rec.getLocation();
-        Point p = new Point(corner.x+(rec.width/2), corner.y+(rec.height/2));
-        if (getLayer() == null || getLayer().isVisibleTexts()) paintText(g, p);
-    }
+	public MapPolygonImpl(Color optColor, Layer layer, String name, List<? extends ICoordinate> points, Style style) {
+		super(layer, name, style);
+		this.points = points;
+		this.optColor = optColor;
+	}
 
-    public static Style getDefaultStyle() {
-        return new Style(Color.BLUE, new Color(100, 100, 100, 50), new BasicStroke(2), getDefaultFont());
-    }
+	@Override
+	public List<? extends ICoordinate> getPoints() {
+		return this.points;
+	}
 
-    @Override
-    public String toString() {
-        return "MapPolygon [points=" + points + ']';
-    }
+	@Override
+	public void paint(Graphics g, List<Point> points) {
+		Polygon polygon = new Polygon();
+		for (Point p : points) {
+			polygon.addPoint(p.x, p.y);
+		}
+		paint(g, polygon);
+	}
+
+	@Override
+	public void paint(Graphics g, Polygon polygon) {
+		// Prepare graphics
+		Color oldColor;
+		if (optColor == null) {
+			oldColor = g.getColor();
+		}
+		else {
+			oldColor = optColor;
+		}
+		g.setColor(optColor);
+
+		Stroke oldStroke = null;
+		if (g instanceof Graphics2D) {
+			Graphics2D g2 = (Graphics2D) g;
+			oldStroke = g2.getStroke();
+			g2.setStroke(getStroke());
+		}
+		// Draw
+		g.drawPolygon(polygon);
+		if (g instanceof Graphics2D && getBackColor() != null) {
+			Graphics2D g2 = (Graphics2D) g;
+			Composite oldComposite = g2.getComposite();
+			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+			g2.setPaint(getBackColor());
+			g2.fillPolygon(polygon);
+			g2.setComposite(oldComposite);
+		}
+		// Restore graphics
+		g.setColor(oldColor);
+		if (g instanceof Graphics2D) {
+			((Graphics2D) g).setStroke(oldStroke);
+		}
+		Rectangle rec = polygon.getBounds();
+		Point corner = rec.getLocation();
+		Point p = new Point(corner.x + (rec.width / 2), corner.y + (rec.height / 2));
+		if (getLayer() == null || getLayer().isVisibleTexts()) paintText(g, p);
+	}
+
+	public static Style getDefaultStyle() {
+		return new Style(Color.BLUE, new Color(100, 100, 100, 50), new BasicStroke(2), getDefaultFont());
+	}
+
+	@Override
+	public String toString() {
+		return "MapPolygon [points=" + points + "]";
+	}
 }
