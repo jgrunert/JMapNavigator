@@ -41,7 +41,5 @@ public interface IRouteSolver {
 
 	Coordinate getBestCandidateCoords();
 
-	float getDistOfRoute();
-
 	float getTimeOfRoute();
 }

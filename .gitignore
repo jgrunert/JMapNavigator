@@ -11,3 +11,5 @@ buildNumber.properties
 *.project
 *.classpath
 JMapNavigator/route_graph/
+JMapNavigator/SinCosCache.bin
+JMapNavigator/DistCache.bin

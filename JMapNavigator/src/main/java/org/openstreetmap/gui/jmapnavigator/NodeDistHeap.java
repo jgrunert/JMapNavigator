@@ -4,7 +4,7 @@ package org.openstreetmap.gui.jmapnavigator;
 
 /**
  * Min heap for map nodes
- * 
+ *
  * @author Jonas Grunert
  *
  */
@@ -54,7 +54,7 @@ public class NodeDistHeap {
 			throw new IllegalStateException("Heap capacity exceeded");
 		}
 		//        if(nodeGridHeapIndices.containsKey(nodeGridIndex)) {
-		//            throw new IllegalStateException("Cant add same node twice");            
+		//            throw new IllegalStateException("Cant add same node twice");
 		//        }
 
 		// place element into heap at bottom
@@ -96,7 +96,7 @@ public class NodeDistHeap {
 
 	/**
 	 * Tries to find a node with given index
-	 * 
+	 *
 	 * @param nodeId
 	 *            GridNode ID of node
 	 * @return Index in heap or -1 if not found
@@ -187,11 +187,11 @@ public class NodeDistHeap {
 			i = smallerChild;
 		}
 
-		//        sum += System.nanoTime() - beg;        
+		//        sum += System.nanoTime() - beg;
 		//        if(sum > 300000000) {
 		//            System.out.println("HEAP: " + (double)sum / invocs);
 		//            throw new RuntimeException();
-		//        }        
+		//        }
 	}
 
 

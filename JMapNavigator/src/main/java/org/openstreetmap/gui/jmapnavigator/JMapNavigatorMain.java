@@ -55,7 +55,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	private final JLabel mperpLabelName;
 	private final JLabel mperpLabelValue;
 
-	private final JLabel routeDistLabel;
+	//	private final JLabel routeDistLabel;
 	private final JLabel routeTimeLabel;
 
 	private static final int MAX_ROUTE_PREVIEW_DOTS = 50;
@@ -217,8 +217,8 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		//		});
 		//		panelTop.add(doMotorwayBoost);
 
-		routeDistLabel = new JLabel("0 km");
-		panelBottom.add(routeDistLabel);
+		//		routeDistLabel = new JLabel("0 km");
+		//		panelBottom.add(routeDistLabel);
 		routeTimeLabel = new JLabel("0:00");
 		panelBottom.add(routeTimeLabel);
 
@@ -393,7 +393,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 				lastCoord = coord;
 			}
 
-			routeDistLabel.setText(((int) mapController.getRouteSolver().getDistOfRoute() / 1000.0f) + " km");
+			//			routeDistLabel.setText(((int) mapController.getRouteSolver().getDistOfRoute() / 1000.0f) + " km");
 			int timeHours = (int) mapController.getRouteSolver().getTimeOfRoute();
 			int timeMinutes = (int) (60 * (mapController.getRouteSolver().getTimeOfRoute() - timeHours));
 			routeTimeLabel.setText(timeHours + ":" + timeMinutes + " h");
