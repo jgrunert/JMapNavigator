@@ -7,11 +7,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 
 public class DijkstraRouteSolver implements IRouteSolver {
@@ -21,11 +24,10 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	private static int ROUTE_HEAP_CAPACITY = 1000000;
 
 	private final Long2ObjectMap<MapNode> mapNodes = new Long2ObjectOpenHashMap<>();
-	private final NodeDistHeap routeDistHeap;
 
 	private volatile RoutingState state = RoutingState.NotReady;
-	private Long startNodeGridIndex = null;
-	private Long targetNodeGridIndex = null;
+	private Long startNodeIndex = null;
+	private Long targetNodeIndex = null;
 	private volatile boolean needsDispalyRefresh = false;
 	public float timeOfRoute = 0.0f; // Route time in seconds
 
@@ -35,9 +37,16 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 	// Final route
 	private List<Coordinate> calculatedRoute = new LinkedList<>();
-
-
 	private Long bestCandidateNode;
+
+	// Pathfinding
+	private final NodeDistHeap routeDistHeap;
+	private long startTime;
+	private Random rd;
+	private Long2ObjectMap<DiscoveredPathNode> openList = new Long2ObjectOpenHashMap<>();
+	private LongSet closedList = new LongOpenHashSet();
+	private boolean found = false;
+	private DiscoveredPathNode foundNode;
 
 
 
@@ -57,8 +66,8 @@ public class DijkstraRouteSolver implements IRouteSolver {
 			throw new RuntimeException(e);
 		}
 
-		startNodeGridIndex = findNextNode(47.8f, 9.0f, (byte) 0, (byte) 0);
-		targetNodeGridIndex = findNextNode(49.15f, 9.22f, (byte) 0, (byte) 0);
+		startNodeIndex = findNextNode(47.8f, 9.0f);
+		targetNodeIndex = findNextNode(49.15f, 9.22f);
 
 		state = RoutingState.Standby;
 		needsDispalyRefresh = true;
@@ -96,33 +105,207 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	}
 
 
+
+	@Override
+	public void startCalculateRoute() {
+
+		if (state != RoutingState.Standby) {
+			System.err.println("Routing not available");
+			return;
+		}
+
+		if (startNodeIndex == null || targetNodeIndex == null) {
+			System.err.println("Cannot calculate route: Must select any start and target");
+			return;
+		}
+
+		this.state = RoutingState.Routing;
+		this.startTime = System.currentTimeMillis();
+		needsDispalyRefresh = true;
+
+		if (startNodeIndex == null || targetNodeIndex == null) {
+			System.err.println("Cannot calculate route: Must select valid start and target");
+			return;
+		}
+
+		rd = new Random(123);
+		routingPreviewDots.clear();
+
+		// Reset buffers and
+		routeDistHeap.resetEmpty();
+		openList.clear(); // Stores all open nodes
+		closedList.clear(); // Stores all closed nodes
+
+		// Add start node
+		routeDistHeap.add(startNodeIndex, 0.0f);
+		openList.put(startNodeIndex, new DiscoveredPathNode(startNodeIndex, null, 0));
+
+		found = false;
+		//		target = (long) targetNodeGridIndex;
+		//		visitedCount = 0;
+		//		hCalc = 0;
+		//		hReuse = 0;
+		//		gridChanges = 0;
+		//		gridStays = 0;
+		//		firstVisits = 0;
+		//		againVisits = 0;
+		//		fastFollows = 0;
+
+		//		System.out.println("Start routing from " + startLat + "/" + startLon + " to " + targetLat + "/" + targetLon);
+		System.out.println("Start routing from " + startNodeIndex + " to " + targetNodeIndex);
+		System.out.flush();
+
+
+		Thread routingThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				System.out.println("Start doRouting thread");
+				try {
+					doRouting();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				state = RoutingState.Standby;
+				System.out.println("Finishing doRouting thread");
+			}
+		});
+		routingThread.setName("RoutingThread");
+		routingThread.start();
+	}
+
+
+	private void doRouting() {
+
+		long visNodeIndex;
+		MapNode visNode;
+
+		// Find route with Dijkstra
+		while (!routeDistHeap.isEmpty()) {
+			// Remove and get index
+			visNodeIndex = routeDistHeap.removeFirst();
+			bestCandidateNode = visNodeIndex;
+			DiscoveredPathNode visDiscoveredNode = openList.remove(visNodeIndex);
+			closedList.add(visNodeIndex);
+
+			// Visit node/neighbors
+			if (visNodeIndex == targetNodeIndex) {
+				found = true;
+				foundNode = visDiscoveredNode;
+				break;
+			}
+
+			visNode = mapNodes.get(visNodeIndex);
+			if (visNode == null) {
+				//System.err.println("No node " + visNodeIndex);
+				continue;
+			}
+
+			for (int i = 0; i < visNode.EdgeTargets.length; i++) {
+				long edgeNodeIndex = visNode.EdgeTargets[i];
+				if (closedList.contains(edgeNodeIndex)) continue;
+
+				float dist = visDiscoveredNode.Dist + visNode.EdgeDists[i];
+				DiscoveredPathNode edgeNode = openList.get(edgeNodeIndex);
+				if (edgeNode != null) {
+					// Already discovered
+					if (routeDistHeap.decreaseKeyIfSmaller(edgeNodeIndex, dist)) {
+						edgeNode.Pre = visDiscoveredNode;
+						edgeNode.Dist = dist;
+					}
+				}
+				else {
+					// Not discovered yet
+					routeDistHeap.add(edgeNodeIndex, dist);
+					openList.put(edgeNodeIndex, new DiscoveredPathNode(edgeNodeIndex, visDiscoveredNode, dist));
+				}
+			}
+		}
+
+
+		//		System.out.println("H calc: " + hCalc);
+		//		System.out.println("H reuse: " + hReuse);
+		//		System.out.println("gridChanges: " + gridChanges);
+		//		System.out.println("gridStays: " + gridStays);
+		//		System.out.println("firstVisits: " + firstVisits);
+		//		System.out.println("againVisits: " + againVisits);
+		//		System.out.println("fastFollows: " + fastFollows);
+		System.out.println("MaxHeapSize: " + routeDistHeap.getSizeUsageMax());
+
+
+		// If found reconstruct route
+		if (found) {
+			// Reconstruct route
+			reconstructRoute();
+		}
+		else {
+			System.err.println("No way found");
+		}
+
+
+		// Cleanup
+		openList.clear();
+		closedList.clear();
+		this.state = RoutingState.Standby;
+		needsDispalyRefresh = true;
+		System.out.println("Finished routing after " + (System.currentTimeMillis() - startTime) + "ms");
+	}
+
+
+	private void reconstructRoute() {
+
+		calculatedRoute.clear();
+
+		if (!found) {
+			return;
+		}
+
+
+		//		distOfRoute = 0.0f; // Route distance in metres
+		timeOfRoute = foundNode.Dist; // Route time in hours
+
+		DiscoveredPathNode node = foundNode;
+		do {
+			calculatedRoute.add(getNodeCoordinates(node.Index));
+			node = node.Pre;
+		} while (node != null);
+
+		//		System.out.println("Route Distance: " + ((int) distOfRoute / 1000.0f) + "km");
+		int timeHours = (int) timeOfRoute;
+		int timeMinutes = (int) (60 * (timeOfRoute - timeHours));
+		System.out.println("Route time: " + timeHours + ":" + timeMinutes);
+	}
+
+
+
 	// Start and end for route
 	@Override
 	public void setStartNode(long nodeGridIndex) {
-		startNodeGridIndex = nodeGridIndex;
+		startNodeIndex = nodeGridIndex;
 		needsDispalyRefresh = true;
 	}
 
 	@Override
 	public void setTargetNode(long nodeGridIndex) {
-		targetNodeGridIndex = nodeGridIndex;
+		targetNodeIndex = nodeGridIndex;
 		needsDispalyRefresh = true;
 	}
 
 	@Override
 	public Coordinate getStartCoordinate() {
-		if (startNodeGridIndex == null) {
+		if (startNodeIndex == null) {
 			return null;
 		}
-		return getNodeCoordinates(startNodeGridIndex);
+		return getNodeCoordinates(startNodeIndex);
 	}
 
 	@Override
 	public Coordinate getTargetCoordinate() {
-		if (targetNodeGridIndex == null) {
+		if (targetNodeIndex == null) {
 			return null;
 		}
-		return getNodeCoordinates(targetNodeGridIndex);
+		return getNodeCoordinates(targetNodeIndex);
 	}
 
 	@Override
@@ -144,13 +327,6 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	@Override
 	public void resetNeedsDispalyRefresh() {
 		needsDispalyRefresh = false;
-	}
-
-
-	@Override
-	public void startCalculateRoute() {
-		// TODO Auto-generated method stub
-
 	}
 
 
@@ -198,7 +374,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	 * @return Index of next point
 	 */
 	@Override
-	public Long findNextNode(float lat, float lon, byte filterBitMask, byte filterBitValue) {
+	public Long findNextNode(float lat, float lon) {
 		long nextIndex = -1;
 		float smallestDist = Float.MAX_VALUE;
 

@@ -82,7 +82,7 @@ public class JMapNavigatorMapController extends JMapController implements MouseL
 			ICoordinate clickPt = map.getPosition(e.getPoint());
 			Coordinate clickCoord = new Coordinate(clickPt.getLat(), clickPt.getLon());
 
-			Long clickNextPt = routeSolver.findNextNode((float) clickCoord.getLat(), (float) clickCoord.getLon(), (byte) 0, (byte) 0);
+			Long clickNextPt = routeSolver.findNextNode((float) clickCoord.getLat(), (float) clickCoord.getLon());
 			if (clickNextPt == null) {
 				System.err.println("No point found");
 				return;
