@@ -1,8 +1,8 @@
 package org.openstreetmap.gui.jmapnavigator;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,24 +80,20 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	 * @throws Exception
 	 */
 	private void intializeGrids() throws Exception {
-		System.out.println("Start loading grid index");
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(GRAPH_DATA_DIR + "\\graph.txt")))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("#")) continue;
-				String[] lineSplit = line.split("\\|");
-				String[] vertexSplit = lineSplit[0].split(";");
-				long index = Long.parseLong(vertexSplit[0]);
-				float lat = (float) Double.parseDouble(vertexSplit[1]);
-				float lon = (float) Double.parseDouble(vertexSplit[2]);
+		System.out.println("Start loading map graph");
+		try (DataInputStream reader = new DataInputStream(new BufferedInputStream(new FileInputStream(GRAPH_DATA_DIR + "\\graph.bin")))) {
+			int numVertices = reader.readInt();
+			for (int iNode = 0; iNode < numVertices; iNode++) {
+				long index = reader.readInt();
+				float lat = (float) reader.readDouble(); // TODO Double?
+				float lon = (float) reader.readDouble();
 
-				int numEdges = lineSplit.length - 1;
+				int numEdges = reader.readInt();
 				long[] edgeTargets = new long[numEdges];
 				float[] edgeDists = new float[numEdges];
-				for (int i = 0; i < numEdges; i++) {
-					String[] edgeSplit = lineSplit[i + 1].split(";");
-					edgeTargets[i] = Long.parseLong(edgeSplit[0]);
-					edgeDists[i] = (float) Double.parseDouble(edgeSplit[1]);
+				for (int iEdge = 0; iEdge < numEdges; iEdge++) {
+					edgeTargets[iEdge] = reader.readInt();
+					edgeDists[iEdge] = (float) reader.readDouble(); // TODO Double?
 				}
 				mapNodes.put(index, new MapNode(lat, lon, edgeTargets, edgeDists));
 			}
