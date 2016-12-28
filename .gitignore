@@ -10,3 +10,4 @@ buildNumber.properties
 .settings/
 *.project
 *.classpath
+JMapNavigator/route_graph/
