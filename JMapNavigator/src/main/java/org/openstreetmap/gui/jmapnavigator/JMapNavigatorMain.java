@@ -394,8 +394,9 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 
 			//			routeDistLabel.setText(((int) mapController.getRouteSolver().getDistOfRoute() / 1000.0f) + " km");
-			int timeHours = (int) mapController.getRouteSolver().getTimeOfRoute();
-			int timeMinutes = (int) (60 * (mapController.getRouteSolver().getTimeOfRoute() - timeHours));
+			double timeOfRouteHours = mapController.getRouteSolver().getTimeOfRoute() / 3600;
+			int timeHours = (int) timeOfRouteHours;
+			int timeMinutes = (int) (60 * (timeOfRouteHours - timeHours));
 			routeTimeLabel.setText(timeHours + ":" + timeMinutes + " h");
 		}
 

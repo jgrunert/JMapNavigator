@@ -268,8 +268,9 @@ public class DijkstraRouteSolver implements IRouteSolver {
 		} while (node != null);
 
 		//		System.out.println("Route Distance: " + ((int) distOfRoute / 1000.0f) + "km");
-		int timeHours = (int) timeOfRoute;
-		int timeMinutes = (int) (60 * (timeOfRoute - timeHours));
+		double timeOfRouteHours = timeOfRoute / 3600;
+		int timeHours = (int) (timeOfRouteHours / 60);
+		int timeMinutes = (int) (60 * (timeOfRouteHours - timeHours));
 		System.out.println("Route time: " + timeHours + ":" + timeMinutes);
 	}
 
