@@ -192,6 +192,10 @@ public class DijkstraRouteSolver implements IRouteSolver {
 				break;
 			}
 
+			if (rd.nextFloat() > routingPreviewDotPropability) {
+				addNewPreviewDot(getNodeCoordinates(visNodeIndex));
+			}
+
 			visNode = mapNodes.get(visNodeIndex);
 			if (visNode == null) {
 				//System.err.println("No node " + visNodeIndex);
