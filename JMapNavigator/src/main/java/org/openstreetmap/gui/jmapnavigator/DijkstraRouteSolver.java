@@ -398,4 +398,10 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 		return nextIndex;
 	}
+
+
+	@Override
+	public Coordinate getCoordinatesByIndex(int index) {
+		return new Coordinate(mapNodes.get((long) index).Lat, mapNodes.get((long) index).Lon);
+	}
 }

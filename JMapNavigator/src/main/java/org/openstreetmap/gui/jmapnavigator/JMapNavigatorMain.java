@@ -11,6 +11,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -306,6 +308,33 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 		});
 		panelBottom.add(buttonCalcManiacShort);
+
+
+		JButton buttonLoadShowPath = new JButton("Load Path");
+		buttonLoadShowPath.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				clearRouteDisplay();
+				try (BufferedReader br = new BufferedReader(
+						new FileReader("../../\\ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output\\0\\path.txt"))) {
+					String line = br.readLine();
+
+					Coordinate lastCoord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
+					while ((line = br.readLine()) != null) {
+						Coordinate coord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
+						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
+						routeLines.add(routPoly);
+						map().addMapPolygon(routPoly);
+						lastCoord = coord;
+					}
+				}
+				catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		panelBottom.add(buttonLoadShowPath);
 
 		add(treeMap, BorderLayout.CENTER);
 
