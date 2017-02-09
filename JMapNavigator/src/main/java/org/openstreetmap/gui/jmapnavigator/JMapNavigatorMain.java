@@ -12,6 +12,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +20,12 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.openstreetmap.gui.jmapnavigator.IRouteSolver.RoutingState;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
@@ -315,22 +318,30 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				clearRouteDisplay();
-				try (BufferedReader br = new BufferedReader(
-						new FileReader("../../\\ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output\\0\\path.txt"))) {
-					String line = br.readLine();
+				JFileChooser chooser = new JFileChooser();
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+						"Text files", "txt");
+				chooser.setFileFilter(filter);
+				chooser.setCurrentDirectory(new File("../../\\ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output"));
+				int returnVal = chooser.showOpenDialog(JMapNavigatorMain.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					clearRouteDisplay();
+					try (BufferedReader br = new BufferedReader(
+							new FileReader(chooser.getSelectedFile().getAbsolutePath()))) {
+						String line = br.readLine();
 
-					Coordinate lastCoord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
-					while ((line = br.readLine()) != null) {
-						Coordinate coord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
-						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
-						routeLines.add(routPoly);
-						map().addMapPolygon(routPoly);
-						lastCoord = coord;
+						Coordinate lastCoord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
+						while ((line = br.readLine()) != null) {
+							Coordinate coord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
+							MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
+							routeLines.add(routPoly);
+							map().addMapPolygon(routPoly);
+							lastCoord = coord;
+						}
 					}
-				}
-				catch (Exception e1) {
-					e1.printStackTrace();
+					catch (Exception e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		});
