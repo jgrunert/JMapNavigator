@@ -22,6 +22,9 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	// General constants
 	private static int ROUTE_HEAP_CAPACITY = 1000000;
 
+	private final Random random = new Random(0);
+	private List<Long> mapNodeIDsList;
+
 	private final Long2ObjectMap<MapNode> mapNodes = new Long2ObjectOpenHashMap<>();
 
 	private final String roadGraphFile;
@@ -101,6 +104,8 @@ public class DijkstraRouteSolver implements IRouteSolver {
 				mapNodes.put(index, new MapNode(lat, lon, edgeTargets, edgeDists));
 			}
 		}
+
+		mapNodeIDsList = new ArrayList<>(mapNodes.keySet());
 	}
 
 
@@ -404,7 +409,12 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 
 	@Override
-	public Coordinate getCoordinatesByIndex(int index) {
-		return new Coordinate(mapNodes.get((long) index).Lat, mapNodes.get((long) index).Lon);
+	public Coordinate getCoordinatesByIndex(long index) {
+		return new Coordinate(mapNodes.get(index).Lat, mapNodes.get((long) index).Lon);
+	}
+
+	@Override
+	public long getRandomNodeIndex() {
+		return mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
 	}
 }

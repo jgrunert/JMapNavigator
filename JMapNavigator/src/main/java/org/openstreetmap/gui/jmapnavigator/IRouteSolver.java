@@ -41,7 +41,10 @@ public interface IRouteSolver {
 
 	Coordinate getBestCandidateCoords();
 
-	Coordinate getCoordinatesByIndex(int index);
+	Coordinate getCoordinatesByIndex(long index);
 
 	float getTimeOfRoute();
+
+
+	long getRandomNodeIndex();
 }

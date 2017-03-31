@@ -347,6 +347,26 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		});
 		panelBottom.add(buttonLoadShowPath);
 
+
+		JButton buttonGenerateQueries = new JButton("Generate queries");
+		buttonGenerateQueries.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				clearRouteDisplay();
+
+				IRouteSolver rs = mapController.getRouteSolver();
+				long n0 = rs.getRandomNodeIndex();
+				long n1 = rs.getRandomNodeIndex();
+				Coordinate c0 = rs.getCoordinatesByIndex(n0);
+				Coordinate c1 = rs.getCoordinatesByIndex(n1);
+				MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
+				routeLines.add(routPoly);
+				map().addMapPolygon(routPoly);
+			}
+		});
+		panelBottom.add(buttonGenerateQueries);
+
 		add(treeMap, BorderLayout.CENTER);
 
 		//map().addMapMarker(new MapMarkerDot("A", new Coordinate(48.68, 9.00)));
