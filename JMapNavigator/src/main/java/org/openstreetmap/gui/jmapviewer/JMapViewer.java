@@ -112,8 +112,8 @@ public class JMapViewer extends JPanel implements TileLoaderListener {
 	 * Creates a standard {@link JMapViewer} instance that can be controlled via mouse: hold right mouse button for moving, double click left mouse button or use mouse wheel for
 	 * zooming. Loaded tiles are stored in a {@link MemoryTileCache} and the tile loader uses 4 parallel threads for retrieving the tiles.
 	 */
-	public JMapViewer() {
-		this(new MemoryTileCache());
+	public JMapViewer(String roadGraphFile) {
+		this(new MemoryTileCache(), roadGraphFile);
 	}
 
 	/**
@@ -126,8 +126,8 @@ public class JMapViewer extends JPanel implements TileLoaderListener {
 	 * @deprecated use {@link #JMapViewer(TileCache)}
 	 */
 	@Deprecated
-	public JMapViewer(TileCache tileCache, int downloadThreadCount) {
-		this(tileCache);
+	public JMapViewer(TileCache tileCache, int downloadThreadCount, String roadGraphFile) {
+		this(tileCache, roadGraphFile);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class JMapViewer extends JPanel implements TileLoaderListener {
 	 *            The cache where to store tiles
 	 *
 	 */
-	public JMapViewer(TileCache tileCache) {
+	public JMapViewer(TileCache tileCache, String roadGraphFile) {
 		tileSource = new OsmTileSource.Mapnik();
 		tileController = new TileController(tileSource, tileCache, this);
 		mapMarkerList = Collections.synchronizedList(new LinkedList<MapMarker>());
@@ -152,7 +152,7 @@ public class JMapViewer extends JPanel implements TileLoaderListener {
 		setMinimumSize(new Dimension(tileSource.getTileSize(), tileSource.getTileSize()));
 		setPreferredSize(new Dimension(400, 400));
 		setDisplayPosition(new Coordinate(50, 9), 3);
-		MapController = new JMapNavigatorMapController(this);
+		MapController = new JMapNavigatorMapController(this, roadGraphFile);
 	}
 
 	@Override

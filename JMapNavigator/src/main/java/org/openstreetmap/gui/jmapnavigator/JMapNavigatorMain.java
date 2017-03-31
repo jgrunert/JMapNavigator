@@ -70,11 +70,11 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	/**
 	 * Constructs the {@code Demo}.
 	 */
-	public JMapNavigatorMain() {
+	public JMapNavigatorMain(String roadGraphFile) {
 		super("JMapViewer Demo");
 		setSize(400, 400);
 
-		treeMap = new JMapViewerTree("Zones");
+		treeMap = new JMapViewerTree("Zones", roadGraphFile);
 		mapController = treeMap.getMapController();
 
 		// Listen to the map viewer for user operations so components will
@@ -474,7 +474,9 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	 *            Main program arguments
 	 */
 	public static void main(String[] args) {
-		new JMapNavigatorMain().setVisible(true);
+		String roadGraphFile = "route_graph" + File.separator + "graph.bin";
+		if (args.length >= 1) roadGraphFile = args[0];
+		new JMapNavigatorMain(roadGraphFile).setVisible(true);
 	}
 
 	private void updateZoomParameters() {

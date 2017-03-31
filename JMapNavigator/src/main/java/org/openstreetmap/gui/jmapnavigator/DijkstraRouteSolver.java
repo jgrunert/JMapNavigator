@@ -20,10 +20,11 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 public class DijkstraRouteSolver implements IRouteSolver {
 
 	// General constants
-	private static final String GRAPH_DATA_DIR = "route_graph";
 	private static int ROUTE_HEAP_CAPACITY = 1000000;
 
 	private final Long2ObjectMap<MapNode> mapNodes = new Long2ObjectOpenHashMap<>();
+
+	private final String roadGraphFile;
 
 	private volatile RoutingState state = RoutingState.NotReady;
 	private Long startNodeIndex = null;
@@ -53,7 +54,8 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	/**
 	 * Constructor, loads grid data
 	 */
-	public DijkstraRouteSolver() {
+	public DijkstraRouteSolver(String roadGraphFile) {
+		this.roadGraphFile = roadGraphFile;
 
 		try {
 			intializeGrids();
@@ -81,7 +83,8 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	 */
 	private void intializeGrids() throws Exception {
 		System.out.println("Start loading map graph");
-		try (DataInputStream reader = new DataInputStream(new BufferedInputStream(new FileInputStream(GRAPH_DATA_DIR + "\\graph.bin")))) {
+		try (DataInputStream reader = new DataInputStream(
+				new BufferedInputStream(new FileInputStream(roadGraphFile)))) {
 			int numVertices = reader.readInt();
 			for (int iNode = 0; iNode < numVertices; iNode++) {
 				long index = reader.readInt();

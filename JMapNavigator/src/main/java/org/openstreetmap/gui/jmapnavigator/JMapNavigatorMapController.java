@@ -50,10 +50,10 @@ public class JMapNavigatorMapController extends JMapController implements MouseL
 	 * @param map
 	 *            JMapViewer
 	 */
-	public JMapNavigatorMapController(JMapViewer map) {
+	public JMapNavigatorMapController(JMapViewer map, String roadGraphFile) {
 		super(map);
 
-		routeSolver = new DijkstraRouteSolver();
+		routeSolver = new DijkstraRouteSolver(roadGraphFile);
 	}
 
 

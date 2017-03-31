@@ -24,7 +24,7 @@ import org.openstreetmap.gui.jmapviewer.interfaces.MapObject;
 
 /**
  * Tree of layers for JMapViewer component
- * 
+ *
  * @author galo
  */
 public class JMapViewerTree extends JPanel {
@@ -37,11 +37,11 @@ public class JMapViewerTree extends JPanel {
 	private JPanel treePanel;
 	private JSplitPane splitPane;
 
-	public JMapViewerTree(String name) {
-		this(name, false);
+	public JMapViewerTree(String name, String roadGraphFile) {
+		this(name, false, roadGraphFile);
 	}
 
-	public JMapViewerTree(String name, boolean treeVisible) {
+	public JMapViewerTree(String name, boolean treeVisible, String roadGraphFile) {
 		super();
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
@@ -49,7 +49,7 @@ public class JMapViewerTree extends JPanel {
 		treePanel = new JPanel(new BorderLayout());
 		treePanel.add(tree, BorderLayout.CENTER);
 		treePanel.add(new JLabel("<html><center>Use right mouse button to<br />show/hide texts</center></html>"), BorderLayout.SOUTH);
-		map = new JMapViewer();
+		map = new JMapViewer(roadGraphFile);
 
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(150);
