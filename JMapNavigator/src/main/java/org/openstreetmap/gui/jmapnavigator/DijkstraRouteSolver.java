@@ -413,8 +413,15 @@ public class DijkstraRouteSolver implements IRouteSolver {
 		return new Coordinate(mapNodes.get(index).Lat, mapNodes.get((long) index).Lon);
 	}
 
+	/**
+	 * A random node with >1 outgoing edges
+	 */
 	@Override
-	public long getRandomNodeIndex() {
-		return mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
+	public long getRandomRouteNodeIndex() {
+		long pt = mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
+		while (mapNodes.get(pt).EdgeDists.length < 2) {
+			pt = mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
+		}
+		return pt;
 	}
 }

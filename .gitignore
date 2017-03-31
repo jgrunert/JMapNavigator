@@ -13,3 +13,4 @@ buildNumber.properties
 JMapNavigator/route_graph/
 JMapNavigator/SinCosCache.bin
 JMapNavigator/DistCache.bin
+JMapNavigator/queries.txt

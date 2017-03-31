@@ -46,5 +46,5 @@ public interface IRouteSolver {
 	float getTimeOfRoute();
 
 
-	long getRandomNodeIndex();
+	long getRandomRouteNodeIndex();
 }

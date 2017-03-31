@@ -14,6 +14,8 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -355,14 +357,24 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			public void actionPerformed(ActionEvent e) {
 				clearRouteDisplay();
 
-				IRouteSolver rs = mapController.getRouteSolver();
-				long n0 = rs.getRandomNodeIndex();
-				long n1 = rs.getRandomNodeIndex();
-				Coordinate c0 = rs.getCoordinatesByIndex(n0);
-				Coordinate c1 = rs.getCoordinatesByIndex(n1);
-				MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
-				routeLines.add(routPoly);
-				map().addMapPolygon(routPoly);
+				int qN = 32;
+
+				try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
+					for (int i = 0; i < qN; i++) {
+						IRouteSolver rs = mapController.getRouteSolver();
+						long n0 = rs.getRandomRouteNodeIndex();
+						long n1 = rs.getRandomRouteNodeIndex();
+						Coordinate c0 = rs.getCoordinatesByIndex(n0);
+						Coordinate c1 = rs.getCoordinatesByIndex(n1);
+						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
+						routeLines.add(routPoly);
+						map().addMapPolygon(routPoly);
+						writer.println("start\t" + n0 + "\t" + n1);
+					}
+				}
+				catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		panelBottom.add(buttonGenerateQueries);
