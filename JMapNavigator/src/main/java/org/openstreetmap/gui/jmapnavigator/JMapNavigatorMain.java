@@ -14,6 +14,8 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -365,29 +367,53 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 				double pointDrawRate = 0.01;
 				Random rd = new Random(0);
 
-				for (int i = 0; i < clusterResults.size(); i++) {
-					Color clusterColor = colorPalette[i];
-					MapNodeCluster cluster = clusterResults.get(i);
-					double[] centerPt = cluster.center;
-					MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
-							new Coordinate(centerPt[0], centerPt[1]), 8);
+				// Visualize clusters
+				//				for (int i = 0; i < clusterResults.size(); i++) {
+				//					Color clusterColor = colorPalette[i];
+				//					MapNodeCluster cluster = clusterResults.get(i);
+				//					double[] centerPt = cluster.center;
+				//					MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
+				//							new Coordinate(centerPt[0], centerPt[1]), 8);
+				//
+				//					Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
+				//							clusterColor.getBlue(), 50);
+				//					for (MapNode clusterPt : cluster.nodes) {
+				//						if (rd.nextDouble() < pointDrawRate) {
+				//							MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
+				//									new Coordinate(clusterPt.Lat, clusterPt.Lon), 3);
+				//							map().addMapMarker(ptDot);
+				//						}
+				//					}
+				//
+				//					map().addMapMarker(dot);
+				//				}
 
-					Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
-							clusterColor.getBlue(), 60);
-					for (MapNode clusterPt : cluster.nodes) {
-						if (rd.nextDouble() < pointDrawRate) {
-							MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
-									new Coordinate(clusterPt.Lat, clusterPt.Lon), 4);
-							map().addMapMarker(ptDot);
-						}
+
+				// Generate queries
+				int qN = 32;
+
+				try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
+					for (int i = 0; i < qN; i++) {
+						// TODO Cluster probability based on size
+						MapNodeCluster cluster = clusterResults.get(rd.nextInt(clusterResults.size()));
+
+						MapNode n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+						MapNode n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+						Coordinate c0 = new Coordinate(n0.Lat, n0.Lon);
+						Coordinate c1 = new Coordinate(n1.Lat, n1.Lon);
+
+						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
+						routeLines.add(routPoly);
+						map().addMapPolygon(routPoly);
+
+						writer.println("start\t" + n0.Id + "\t" + n1.Id);
 					}
-
-					map().addMapMarker(dot);
+				}
+				catch (Exception e1) {
+					e1.printStackTrace();
 				}
 
 
-				//				int qN = 32;
-				//
 				//				try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
 				//					for (int i = 0; i < qN; i++) {
 				//						IRouteSolver rs = mapController.getRouteSolver();

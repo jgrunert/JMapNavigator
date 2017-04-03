@@ -101,7 +101,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 					edgeTargets[iEdge] = reader.readInt();
 					edgeDists[iEdge] = (float) reader.readDouble(); // TODO Double?
 				}
-				mapNodes.put(index, new MapNode(lat, lon, edgeTargets, edgeDists));
+				mapNodes.put(index, new MapNode(index, lat, lon, edgeTargets, edgeDists));
 			}
 		}
 

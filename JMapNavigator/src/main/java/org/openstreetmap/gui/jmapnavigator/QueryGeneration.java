@@ -52,14 +52,15 @@ public class QueryGeneration {
 		List<MapNodeCluster> clusters = new ArrayList<>(largestCities.size());
 		for (int i = 0; i < largestCities.size(); i++) {
 			String cName = largestCities.get(i);
-			double cSize = largestCitiesSizes.get(i);
+			int cPopulation = largestCitiesSizes.get(i);
 			Coordinate cCoords = citiesCoordinates.get(cName);
 			if (cCoords == null) {
 				System.err.println("No coordinates for " + cName);
 				continue;
 			}
-			double cRange = Math.sqrt(cSize) / rangeDivisor;
-			clusters.add(new MapNodeCluster(Utils.coordinateToVector(citiesCoordinates.get(cName)), cRange));
+			double cRange = Math.sqrt((double) cPopulation) / rangeDivisor;
+			clusters.add(
+					new MapNodeCluster(Utils.coordinateToVector(citiesCoordinates.get(cName)), cPopulation, cRange));
 		}
 
 		// Assign nodes to clusters
@@ -83,13 +84,15 @@ public class QueryGeneration {
 	public static class MapNodeCluster {
 
 		public final double[] center;
+		public final int population;
 		public final double range;
 		public final List<MapNode> nodes;
 
 
-		public MapNodeCluster(double[] center, double range) {
+		public MapNodeCluster(double[] center, int population, double range) {
 			super();
 			this.center = center;
+			this.population = population;
 			this.range = range;
 			this.nodes = new ArrayList<>();
 		}
