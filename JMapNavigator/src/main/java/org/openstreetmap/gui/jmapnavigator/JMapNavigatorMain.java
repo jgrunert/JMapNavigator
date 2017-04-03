@@ -14,10 +14,9 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -30,6 +29,7 @@ import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.openstreetmap.gui.jmapnavigator.IRouteSolver.RoutingState;
+import org.openstreetmap.gui.jmapnavigator.QueryGeneration.MapNodeCluster;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 import org.openstreetmap.gui.jmapviewer.JMapViewerTree;
@@ -357,24 +357,53 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			public void actionPerformed(ActionEvent e) {
 				clearRouteDisplay();
 
-				int qN = 32;
+				List<MapNode> mapNodes = new ArrayList<>(mapController.getRouteSolver().getMapNodes().values());
 
-				try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
-					for (int i = 0; i < qN; i++) {
-						IRouteSolver rs = mapController.getRouteSolver();
-						long n0 = rs.getRandomRouteNodeIndex();
-						long n1 = rs.getRandomRouteNodeIndex();
-						Coordinate c0 = rs.getCoordinatesByIndex(n0);
-						Coordinate c1 = rs.getCoordinatesByIndex(n1);
-						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
-						routeLines.add(routPoly);
-						map().addMapPolygon(routPoly);
-						writer.println("start\t" + n0 + "\t" + n1);
+				List<MapNodeCluster> clusterResults = QueryGeneration.cityClustering(mapNodes, 20, 50000);
+
+				Color[] colorPalette = Utils.generateColors(clusterResults.size());
+				double pointDrawRate = 0.01;
+				Random rd = new Random(0);
+
+				for (int i = 0; i < clusterResults.size(); i++) {
+					Color clusterColor = colorPalette[i];
+					MapNodeCluster cluster = clusterResults.get(i);
+					double[] centerPt = cluster.center;
+					MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
+							new Coordinate(centerPt[0], centerPt[1]), 8);
+
+					Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
+							clusterColor.getBlue(), 60);
+					for (MapNode clusterPt : cluster.nodes) {
+						if (rd.nextDouble() < pointDrawRate) {
+							MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
+									new Coordinate(clusterPt.Lat, clusterPt.Lon), 4);
+							map().addMapMarker(ptDot);
+						}
 					}
+
+					map().addMapMarker(dot);
 				}
-				catch (Exception e1) {
-					e1.printStackTrace();
-				}
+
+
+				//				int qN = 32;
+				//
+				//				try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
+				//					for (int i = 0; i < qN; i++) {
+				//						IRouteSolver rs = mapController.getRouteSolver();
+				//						long n0 = rs.getRandomRouteNodeIndex();
+				//						long n1 = rs.getRandomRouteNodeIndex();
+				//						Coordinate c0 = rs.getCoordinatesByIndex(n0);
+				//						Coordinate c1 = rs.getCoordinatesByIndex(n1);
+				//						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
+				//						routeLines.add(routPoly);
+				//						map().addMapPolygon(routPoly);
+				//						writer.println("start\t" + n0 + "\t" + n1);
+				//					}
+				//				}
+				//				catch (Exception e1) {
+				//					e1.printStackTrace();
+				//				}
 			}
 		});
 		panelBottom.add(buttonGenerateQueries);
@@ -506,7 +535,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	 *            Main program arguments
 	 */
 	public static void main(String[] args) {
-		String roadGraphFile = "route_graph" + File.separator + "graph.bin";
+		String roadGraphFile = "data" + File.separator + "graph.bin";
 		if (args.length >= 1) roadGraphFile = args[0];
 		new JMapNavigatorMain(roadGraphFile).setVisible(true);
 	}

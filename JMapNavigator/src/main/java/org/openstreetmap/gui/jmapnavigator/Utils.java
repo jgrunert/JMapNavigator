@@ -1,5 +1,6 @@
 package org.openstreetmap.gui.jmapnavigator;
 
+import java.awt.Color;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -8,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import org.openstreetmap.gui.jmapviewer.Coordinate;
 
 @SuppressWarnings("javadoc")
 public class Utils {
@@ -220,5 +223,29 @@ public class Utils {
 		float dist = distLUT[(int) (Math.sqrt(a) * distLutPrec)];
 
 		return dist;
+	}
+
+
+	public static Color[] generateColors(int n) {
+		Color[] cols = new Color[n];
+		for (int i = 0; i < n; i++) {
+			cols[i] = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
+		}
+		return cols;
+	}
+
+
+	public static double calcVector2Dist(double[] a, double[] b) {
+		double d0 = a[0] - b[0];
+		double d1 = a[1] - b[1];
+		return d0 * d0 + d1 * d1;
+	}
+
+	public static double[] coordinateToVector(Coordinate coord) {
+		return new double[] { coord.getLat(), coord.getLon() };
+	}
+
+	public static Coordinate vectorToCoordinate(double[] vec) {
+		return new Coordinate(vec[0], vec[1]);
 	}
 }

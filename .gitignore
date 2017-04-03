@@ -14,3 +14,5 @@ JMapNavigator/route_graph/
 JMapNavigator/SinCosCache.bin
 JMapNavigator/DistCache.bin
 JMapNavigator/queries.txt
+JMapNavigator/data/de.bin
+JMapNavigator/data/bw.bin

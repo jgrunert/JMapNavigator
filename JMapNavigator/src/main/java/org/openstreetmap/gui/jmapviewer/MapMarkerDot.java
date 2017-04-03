@@ -35,6 +35,10 @@ public class MapMarkerDot extends MapMarkerCircle {
 		this(color, null, name, coord);
 	}
 
+	public MapMarkerDot(String name, Color color, Coordinate coord, double radius) {
+		this(color, null, name, coord, radius);
+	}
+
 	public MapMarkerDot(Layer layer, Coordinate coord) {
 		this(layer, null, coord);
 	}
@@ -45,6 +49,10 @@ public class MapMarkerDot extends MapMarkerCircle {
 
 	public MapMarkerDot(Color color, Layer layer, String name, Coordinate coord) {
 		this(color, layer, name, coord, getDefaultStyle());
+	}
+
+	public MapMarkerDot(Color color, Layer layer, String name, Coordinate coord, double radius) {
+		this(color, layer, name, coord, getDefaultStyle(), radius);
 	}
 
 	public MapMarkerDot(Color color, double lat, double lon) {
@@ -74,6 +82,11 @@ public class MapMarkerDot extends MapMarkerCircle {
 
 	public MapMarkerDot(Color color, Layer layer, String name, Coordinate coord, Style style) {
 		super(layer, name, coord, DOT_RADIUS, STYLE.FIXED, new Style(Color.BLACK, color, null, getDefaultFont()));
+		this.optColor = Color.YELLOW;
+	}
+
+	public MapMarkerDot(Color color, Layer layer, String name, Coordinate coord, Style style, double radius) {
+		super(layer, name, coord, radius, STYLE.FIXED, new Style(Color.BLACK, color, null, getDefaultFont()));
 		this.optColor = Color.YELLOW;
 	}
 

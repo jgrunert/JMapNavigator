@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+
 
 /**
  * Interface for route solvers finding map paths.
@@ -45,6 +47,11 @@ public interface IRouteSolver {
 
 	float getTimeOfRoute();
 
+
+
+	List<Long> getMapNodeIDsList();
+
+	Long2ObjectMap<MapNode> getMapNodes();
 
 	long getRandomRouteNodeIndex();
 }
