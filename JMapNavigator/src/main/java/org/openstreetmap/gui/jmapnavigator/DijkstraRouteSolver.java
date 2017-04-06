@@ -52,6 +52,8 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	private boolean found = false;
 	private DiscoveredPathNode foundNode;
 
+	private boolean updateDisplay;
+
 
 
 	/**
@@ -111,7 +113,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 
 	@Override
-	public void startCalculateRoute() {
+	public void startCalculateRoute(boolean updateDisplay) {
 
 		if (state != RoutingState.Standby) {
 			System.err.println("Routing not available");
@@ -125,7 +127,8 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 		this.state = RoutingState.Routing;
 		this.startTime = System.currentTimeMillis();
-		needsDispalyRefresh = true;
+		this.updateDisplay = updateDisplay;
+		needsDispalyRefresh = updateDisplay;
 
 		if (startNodeIndex == null || targetNodeIndex == null) {
 			System.err.println("Cannot calculate route: Must select valid start and target");
@@ -200,7 +203,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 				break;
 			}
 
-			if (rd.nextFloat() > routingPreviewDotPropability) {
+			if (updateDisplay && rd.nextFloat() > routingPreviewDotPropability) {
 				addNewPreviewDot(getNodeCoordinates(visNodeIndex));
 			}
 
@@ -435,5 +438,25 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	@Override
 	public Long2ObjectMap<MapNode> getMapNodes() {
 		return mapNodes;
+	}
+
+
+	@Override
+	public boolean checkIfPathExisting(long fromNodeIndex, long toNodeIndex) {
+		setStartNode(fromNodeIndex);
+		setTargetNode(toNodeIndex);
+		startCalculateRoute(false);
+		while (state == RoutingState.Routing) {
+			try {
+				Thread.sleep(1);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+		System.out.println(found);
+		return found;
 	}
 }

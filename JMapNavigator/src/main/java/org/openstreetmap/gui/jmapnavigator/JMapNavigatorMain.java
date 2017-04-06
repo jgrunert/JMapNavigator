@@ -105,7 +105,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		panel.add(panelBottom, BorderLayout.SOUTH);
 		JLabel helpLabel = new JLabel("Use right mouse button to move,\n " + "left double click or mouse wheel to zoom.");
 		helpPanel.add(helpLabel);
-		JButton button = new JButton("setDisplayToFitMapMarkers");
+		JButton button = new JButton("FitMapMarkers");
 		button.addActionListener(new ActionListener() {
 
 			@Override
@@ -311,7 +311,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mapController.getRouteSolver().startCalculateRoute();
+				mapController.getRouteSolver().startCalculateRoute(true);
 			}
 		});
 		panelBottom.add(buttonCalcManiacShort);
@@ -352,6 +352,13 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		panelBottom.add(buttonLoadShowPath);
 
 
+
+		// Generate queries
+		final int queryGenerateCount = 64;
+		final boolean showCityHotspots = false;
+		final boolean showQueries = true;
+		final boolean verifyRoutes = true;
+
 		JButton buttonGenerateQueries = new JButton("Generate queries");
 		buttonGenerateQueries.addActionListener(new ActionListener() {
 
@@ -367,50 +374,72 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 				double pointDrawRate = 0.01;
 				Random rd = new Random(0);
 
-				// Visualize clusters
-				//				for (int i = 0; i < clusterResults.size(); i++) {
-				//					Color clusterColor = colorPalette[i];
-				//					MapNodeCluster cluster = clusterResults.get(i);
-				//					double[] centerPt = cluster.center;
-				//					MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
-				//							new Coordinate(centerPt[0], centerPt[1]), 8);
-				//
-				//					Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
-				//							clusterColor.getBlue(), 50);
-				//					for (MapNode clusterPt : cluster.nodes) {
-				//						if (rd.nextDouble() < pointDrawRate) {
-				//							MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
-				//									new Coordinate(clusterPt.Lat, clusterPt.Lon), 3);
-				//							map().addMapMarker(ptDot);
-				//						}
-				//					}
-				//
-				//					map().addMapMarker(dot);
-				//				}
-
-
-				// Generate queries
-				int qN = 32;
-
+				List<Coordinate[]> queryCoords = new ArrayList<>();
 				try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
-					for (int i = 0; i < qN; i++) {
+
+					for (int i = 0; i < queryGenerateCount; i++) {
 						// TODO Cluster probability based on size
 						MapNodeCluster cluster = clusterResults.get(rd.nextInt(clusterResults.size()));
 
-						MapNode n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-						MapNode n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-						Coordinate c0 = new Coordinate(n0.Lat, n0.Lon);
-						Coordinate c1 = new Coordinate(n1.Lat, n1.Lon);
+						MapNode n0, n1;
+						Coordinate c0, c1;
+						do {
+							n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+							n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+							c0 = new Coordinate(n0.Lat, n0.Lon);
+							c1 = new Coordinate(n1.Lat, n1.Lon);
+						} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
 
-						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c0, c1, c1);
-						routeLines.add(routPoly);
-						map().addMapPolygon(routPoly);
+						queryCoords.add(new Coordinate[] { c0, c1 });
 
 						writer.println("start\t" + n0.Id + "\t" + n1.Id);
 					}
 				}
 				catch (Exception e1) {
 					e1.printStackTrace();
+				}
+
+				clearRouteDisplay();
+
+				// Visualize cities clusters
+				if (showCityHotspots) {
+					for (int i = 0; i < clusterResults.size(); i++) {
+						Color clusterColor = colorPalette[i];
+						MapNodeCluster cluster = clusterResults.get(i);
+						double[] centerPt = cluster.center;
+						MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
+								new Coordinate(centerPt[0], centerPt[1]), 8);
+
+						Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
+								clusterColor.getBlue(), 50);
+						for (MapNode clusterPt : cluster.nodes) {
+							if (rd.nextDouble() < pointDrawRate) {
+								MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
+										new Coordinate(clusterPt.Lat, clusterPt.Lon), 3);
+								map().addMapMarker(ptDot);
+							}
+						}
+
+						map().addMapMarker(dot);
+					}
+				}
+
+				// Visualize query routes
+				if (showQueries) {
+					int queryIndex = 0;
+					for (Coordinate[] qCoord : queryCoords) {
+						Coordinate c0 = qCoord[0];
+						Coordinate c1 = qCoord[1];
+
+						map().addMapMarker(new MapMarkerDot("" + queryIndex, Color.RED, c0, 3));
+						map().addMapMarker(new MapMarkerDot("" + queryIndex, Color.BLUE, c1, 3));
+
+						//						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c1, c1, c0);
+						//						routeLines.add(routPoly);
+						map().addMapPolygon(new MapPolygonImpl(Color.BLUE, c1, c1, c0));
+
+						queryIndex++;
+					}
 				}
 
 
