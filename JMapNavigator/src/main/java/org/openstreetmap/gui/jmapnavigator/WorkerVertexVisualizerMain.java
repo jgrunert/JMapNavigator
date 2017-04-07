@@ -4,9 +4,12 @@ package org.openstreetmap.gui.jmapnavigator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -14,11 +17,8 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -27,11 +27,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.Timer;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.openstreetmap.gui.jmapnavigator.IRouteSolver.RoutingState;
-import org.openstreetmap.gui.jmapnavigator.QueryGeneration.MapNodeCluster;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 import org.openstreetmap.gui.jmapviewer.JMapViewerTree;
@@ -51,7 +50,7 @@ import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
  * @author Jonas Grunert
  *
  */
-public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener {
+public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEventListener {
 
 	private static final long serialVersionUID = 1L;
 
@@ -72,12 +71,16 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 	private static final int MAX_ROUTE_PREVIEW_DOTS = 50;
 
+	private String selectedVertexDirectory = null;
+	private int workerCount = 8; // TODO Worker count
+	private JScrollBar vertexSampleScrollBar;
+
 
 
 	/**
 	 * Constructs the {@code Demo}.
 	 */
-	public JMapNavigatorMain(String roadGraphFile) {
+	public WorkerVertexVisualizerMain(String roadGraphFile) {
 		super("JMapViewer Demo");
 		setSize(400, 400);
 
@@ -137,37 +140,8 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		map().setTileLoader((TileLoader) tileLoaderSelector.getSelectedItem());
 		panelTop.add(tileSourceSelector);
 		panelTop.add(tileLoaderSelector);
-		//		final JCheckBox showMapMarker = new JCheckBox("Map markers visible");
-		//		showMapMarker.setSelected(map().getMapMarkersVisible());
-		//		showMapMarker.addActionListener(new ActionListener() {
-		//
-		//			@Override
-		//			public void actionPerformed(ActionEvent e) {
-		//				map().setMapMarkerVisible(showMapMarker.isSelected());
-		//			}
-		//		});
-		//		panelBottom.add(showMapMarker);
-		///
-		//		final JCheckBox showTreeLayers = new JCheckBox("Tree Layers visible");
-		//		showTreeLayers.addActionListener(new ActionListener() {
-		//
-		//			@Override
-		//			public void actionPerformed(ActionEvent e) {
-		//				treeMap.setTreeVisible(showTreeLayers.isSelected());
-		//			}
-		//		});
-		//		panelBottom.add(showTreeLayers);
-		///
-		final JCheckBox showToolTip = new JCheckBox("ToolTip visible");
-		showToolTip.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				map().setToolTipText(null);
-			}
-		});
-		panelBottom.add(showToolTip);
-		///
+
 		final JCheckBox showTileGrid = new JCheckBox("Tile grid visible");
 		showTileGrid.setSelected(map().isTileGridVisible());
 		showTileGrid.addActionListener(new ActionListener() {
@@ -188,15 +162,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 		});
 		panelBottom.add(showZoomControls);
-		final JCheckBox scrollWrapEnabled = new JCheckBox("Scrollwrap enabled");
-		scrollWrapEnabled.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				map().setScrollWrapEnabled(scrollWrapEnabled.isSelected());
-			}
-		});
-		panelBottom.add(scrollWrapEnabled);
 		panelBottom.add(button);
 
 		panelTop.add(zoomLabel);
@@ -206,31 +172,6 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 		add(treeMap, BorderLayout.CENTER);
 
-
-		//		final JCheckBox doFastForward = new JCheckBox("FastFollow");
-		//		doFastForward.setSelected(mapController.getRouteSolver().isDoFastFollow());
-		//		doFastForward.addActionListener(new ActionListener() {
-		//
-		//			@Override
-		//			public void actionPerformed(ActionEvent e) {
-		//				mapController.getRouteSolver().setDoFastFollow(doFastForward.isSelected());
-		//			}
-		//		});
-		//		panelTop.add(doFastForward);
-		//
-		//		final JCheckBox doMotorwayBoost = new JCheckBox("MotorwayBoost");
-		//		doMotorwayBoost.setSelected(mapController.getRouteSolver().isDoMotorwayBoost());
-		//		doMotorwayBoost.addActionListener(new ActionListener() {
-		//
-		//			@Override
-		//			public void actionPerformed(ActionEvent e) {
-		//				mapController.getRouteSolver().setDoMotorwayBoost(doMotorwayBoost.isSelected());
-		//			}
-		//		});
-		//		panelTop.add(doMotorwayBoost);
-
-		//		routeDistLabel = new JLabel("0 km");
-		//		panelBottom.add(routeDistLabel);
 		routeTimeLabel = new JLabel("0:00");
 		panelBottom.add(routeTimeLabel);
 
@@ -250,50 +191,29 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		panelBottom.add(buttonCalcManiacShort);
 
 
-		JButton buttonLoadShowPath = new JButton("Load Path");
-		buttonLoadShowPath.addActionListener(new ActionListener() {
+		JButton loadWorkerVertices = new JButton("Load WorkerVertices");
+		loadWorkerVertices.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				FileNameExtensionFilter filter = new FileNameExtensionFilter(
-						"Text files", "txt");
-				chooser.setFileFilter(filter);
-				chooser.setCurrentDirectory(new File("../../\\ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output"));
-				int returnVal = chooser.showOpenDialog(JMapNavigatorMain.this);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					clearRouteDisplay();
-					try (BufferedReader br = new BufferedReader(
-							new FileReader(chooser.getSelectedFile().getAbsolutePath()))) {
-						String line = br.readLine();
-
-						Coordinate lastCoord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
-						while ((line = br.readLine()) != null) {
-							Coordinate coord = mapController.getRouteSolver().getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
-							MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
-							routeLines.add(routPoly);
-							map().addMapPolygon(routPoly);
-							lastCoord = coord;
-						}
-					}
-					catch (Exception e1) {
-						e1.printStackTrace();
-					}
-				}
+				loadNewWorkerVertices();
 			}
 		});
-		panelBottom.add(buttonLoadShowPath);
+		panelBottom.add(loadWorkerVertices);
 
-		// Generate queries
-		JButton buttonGenerateQueries = new JButton("Generate queries");
-		buttonGenerateQueries.addActionListener(new ActionListener() {
+		vertexSampleScrollBar = new JScrollBar(0, 0, 0, 0, 0);
+		vertexSampleScrollBar.addAdjustmentListener(new AdjustmentListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				generateQueries();
+			public void adjustmentValueChanged(AdjustmentEvent arg0) {
+				if (selectedVertexDirectory != null)
+					loadWorkerVerticesSample(selectedVertexDirectory, workerCount, vertexSampleScrollBar.getValue());
 			}
+
 		});
-		panelBottom.add(buttonGenerateQueries);
+		vertexSampleScrollBar.setPreferredSize(new Dimension(200, 20));
+		panelBottom.add(vertexSampleScrollBar);
+
 
 		add(treeMap, BorderLayout.CENTER);
 
@@ -319,7 +239,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 				else {
 					map().setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				}
-				if (showToolTip.isSelected()) map().setToolTipText(map().getPosition(p).toString());
+				//				if (showToolTip.isSelected()) map().setToolTipText(map().getPosition(p).toString());
 			}
 		});
 
@@ -406,93 +326,63 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	}
 
 
-	private void generateQueries() {
-		final int queryGenerateCount = 64;
-		final boolean showCityHotspots = false;
-		final boolean showQueries = true;
-		final boolean verifyRoutes = true;
 
-		clearRouteDisplay();
+	private void loadNewWorkerVertices() {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setCurrentDirectory(
+				new File(selectedVertexDirectory != null ? selectedVertexDirectory
+						: new File("../../").getAbsolutePath()));
+		chooser.setAcceptAllFileFilterUsed(false);
+		int returnVal = chooser.showOpenDialog(WorkerVertexVisualizerMain.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			selectedVertexDirectory = chooser.getSelectedFile().getPath();
 
-		List<MapNode> mapNodes = new ArrayList<>(mapController.getRouteSolver().getMapNodes().values());
-
-		List<MapNodeCluster> clusterResults = QueryGeneration.cityClustering(mapNodes, 20, 50000);
-
-		Color[] colorPalette = Utils.generateColors(clusterResults.size());
-		double pointDrawRate = 0.01;
-		Random rd = new Random(0);
-
-		List<Coordinate[]> queryCoords = new ArrayList<>();
-		try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
-
-			for (int i = 0; i < queryGenerateCount; i++) {
-				// TODO Cluster probability based on size
-				MapNodeCluster cluster = clusterResults.get(rd.nextInt(clusterResults.size()));
-
-				MapNode n0, n1;
-				Coordinate c0, c1;
-				do {
-					n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					c0 = new Coordinate(n0.Lat, n0.Lon);
-					c1 = new Coordinate(n1.Lat, n1.Lon);
-				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
-
-				queryCoords.add(new Coordinate[] { c0, c1 });
-
-				writer.println("start\t" + n0.Id + "\t" + n1.Id);
-			}
-		}
-		catch (Exception e1) {
-			e1.printStackTrace();
-		}
-
-		clearRouteDisplay();
-
-		// Visualize cities clusters
-		if (showCityHotspots) {
-			for (int i = 0; i < clusterResults.size(); i++) {
-				Color clusterColor = colorPalette[i];
-				MapNodeCluster cluster = clusterResults.get(i);
-				double[] centerPt = cluster.center;
-				MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
-						new Coordinate(centerPt[0], centerPt[1]), 8);
-
-				Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
-						clusterColor.getBlue(), 50);
-				for (MapNode clusterPt : cluster.nodes) {
-					if (rd.nextDouble() < pointDrawRate) {
-						MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
-								new Coordinate(clusterPt.Lat, clusterPt.Lon), 3);
-						map().addMapMarker(ptDot);
-					}
+			int sampleCount = 0;
+			try (BufferedReader reader = new BufferedReader(
+					new FileReader(selectedVertexDirectory + File.separator + "worker0_vertexStats.txt"))) {
+				while (reader.readLine() != null) {
+					sampleCount++;
 				}
-
-				map().addMapMarker(dot);
 			}
-		}
-
-		// Visualize query routes
-		if (showQueries) {
-			int queryIndex = 0;
-			for (Coordinate[] qCoord : queryCoords) {
-				Coordinate c0 = qCoord[0];
-				Coordinate c1 = qCoord[1];
-
-				map().addMapMarker(new MapMarkerDot("" + queryIndex, Color.RED, c0, 3));
-				map().addMapMarker(new MapMarkerDot("" + queryIndex, Color.BLUE, c1, 3));
-
-				//						MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, c1, c1, c0);
-				//						routeLines.add(routPoly);
-				map().addMapPolygon(new MapPolygonImpl(Color.BLUE, c1, c1, c0));
-
-				queryIndex++;
+			catch (Exception e) {
+				e.printStackTrace();
 			}
+			vertexSampleScrollBar.setValue(0);
+			vertexSampleScrollBar.setMaximum(sampleCount);
+
+			loadWorkerVerticesSample(selectedVertexDirectory, workerCount, 0);
 		}
 	}
 
+	private void loadWorkerVerticesSample(String statsDir, int workerCount, int sampleIndex) {
+		map().removeAll();
+		map().removeAllMapMarkers();
+		map().removeAllMapPolygons();
+		clearRouteDisplay();
 
+		Color[] colorPalette = Utils.generateColors(workerCount);
+		IRouteSolver routeSolver = mapController.getRouteSolver();
+		for(int iW = 0; iW < workerCount; iW++) {
+			Color col = colorPalette[iW];
 
+			try (BufferedReader reader = new BufferedReader(
+					new FileReader(statsDir + File.separator + "worker" + iW + "_vertexStats.txt"))) {
+				for (int i = 0; i < sampleIndex; i++) {
+					reader.readLine();
+				}
+
+				String[] lineSplit = reader.readLine().split(";");
+				for (int i = 0; i < lineSplit.length; i++) {
+					map().addMapMarker(new MapMarkerDot("", col,
+							routeSolver.getCoordinatesByIndex(Integer.parseInt(lineSplit[i])), 3));
+				}
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 
 	private JMapViewer map() {
@@ -507,7 +397,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	public static void main(String[] args) {
 		String roadGraphFile = "data" + File.separator + "graph.bin";
 		if (args.length >= 1) roadGraphFile = args[0];
-		new JMapNavigatorMain(roadGraphFile).setVisible(true);
+		new WorkerVertexVisualizerMain(roadGraphFile).setVisible(true);
 	}
 
 	private void updateZoomParameters() {
