@@ -407,7 +407,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 
 	private void generateQueries() {
-		final int queryGenerateCount = 64;
+		final int queryGenerateCount = 256;
 		final boolean showCityHotspots = false;
 		final boolean showQueries = true;
 		final boolean verifyRoutes = true;
@@ -438,6 +438,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 					c1 = new Coordinate(n1.Lat, n1.Lon);
 				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
 
+				System.out.println("----- " + i + "/" + queryGenerateCount);
 				queryCoords.add(new Coordinate[] { c0, c1 });
 
 				writer.println("start\t" + n0.Id + "\t" + n1.Id);
