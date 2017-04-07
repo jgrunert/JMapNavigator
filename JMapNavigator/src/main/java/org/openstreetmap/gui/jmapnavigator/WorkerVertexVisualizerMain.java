@@ -356,10 +356,10 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 	}
 
 	private void loadWorkerVerticesSample(String statsDir, int workerCount, int sampleIndex) {
+		clearRouteDisplay();
 		map().removeAll();
 		map().removeAllMapMarkers();
 		map().removeAllMapPolygons();
-		clearRouteDisplay();
 
 		Color[] colorPalette = Utils.generateColors(workerCount);
 		IRouteSolver routeSolver = mapController.getRouteSolver();
@@ -372,10 +372,16 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 					reader.readLine();
 				}
 
-				String[] lineSplit = reader.readLine().split(";");
-				for (int i = 0; i < lineSplit.length; i++) {
-					map().addMapMarker(new MapMarkerDot("", col,
-							routeSolver.getCoordinatesByIndex(Integer.parseInt(lineSplit[i])), 3));
+				String line = reader.readLine();
+				if (line != null) {
+					String[] lineSplit = line.split(";");
+					for (int i = 0; i < lineSplit.length; i++) {
+						map().addMapMarker(new MapMarkerDot("", col,
+								routeSolver.getCoordinatesByIndex(Integer.parseInt(lineSplit[i])), 3));
+					}
+				}
+				else {
+					System.out.println("No sample " + sampleIndex + " for worker " + iW);
 				}
 			}
 			catch (Exception e) {
