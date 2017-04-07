@@ -73,6 +73,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 
 	private String selectedVertexDirectory = null;
 	private int workerCount = 8; // TODO Worker count
+	private String vertexStatFileName;
 	private JScrollBar vertexSampleScrollBar;
 
 
@@ -196,18 +197,31 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				vertexStatFileName = "_allVertexStats.txt";
 				loadNewWorkerVertices();
 			}
 		});
 		panelBottom.add(loadWorkerVertices);
+
+		JButton loadWorkerVertices2 = new JButton("Load ActiveVertices");
+		loadWorkerVertices2.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				vertexStatFileName = "_actVertexStats.txt";
+				loadNewWorkerVertices();
+			}
+		});
+		panelBottom.add(loadWorkerVertices2);
 
 		vertexSampleScrollBar = new JScrollBar(0, 0, 0, 0, 0);
 		vertexSampleScrollBar.addAdjustmentListener(new AdjustmentListener() {
 
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent arg0) {
-				if (selectedVertexDirectory != null)
+				if (selectedVertexDirectory != null) {
 					loadWorkerVerticesSample(selectedVertexDirectory, workerCount, vertexSampleScrollBar.getValue());
+				}
 			}
 
 		});
@@ -340,7 +354,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 
 			int sampleCount = 0;
 			try (BufferedReader reader = new BufferedReader(
-					new FileReader(selectedVertexDirectory + File.separator + "worker0_vertexStats.txt"))) {
+					new FileReader(selectedVertexDirectory + File.separator + "worker0" + vertexStatFileName))) {
 				while (reader.readLine() != null) {
 					sampleCount++;
 				}
@@ -367,7 +381,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			Color col = colorPalette[iW];
 
 			try (BufferedReader reader = new BufferedReader(
-					new FileReader(statsDir + File.separator + "worker" + iW + "_vertexStats.txt"))) {
+					new FileReader(statsDir + File.separator + "worker" + iW + vertexStatFileName))) {
 				for (int i = 0; i < sampleIndex; i++) {
 					reader.readLine();
 				}
@@ -376,8 +390,10 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 				if (line != null) {
 					String[] lineSplit = line.split(";");
 					for (int i = 0; i < lineSplit.length; i++) {
-						map().addMapMarker(new MapMarkerDot("", col,
-								routeSolver.getCoordinatesByIndex(Integer.parseInt(lineSplit[i])), 3));
+						String s = lineSplit[i];
+						if (!s.isEmpty())
+							map().addMapMarker(new MapMarkerDot("", col,
+									routeSolver.getCoordinatesByIndex(Integer.parseInt(s)), 3));
 					}
 				}
 				else {
