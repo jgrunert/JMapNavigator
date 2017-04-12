@@ -27,7 +27,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.math3.util.Pair;
@@ -52,7 +51,7 @@ import org.openstreetmap.gui.jmapviewer.tilesources.OsmTileSource;
  * @author Jonas Grunert
  *
  */
-public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener {
+public class QueryGeneratorMain extends JFrame implements JMapViewerEventListener {
 
 	private static final long serialVersionUID = 1L;
 
@@ -78,7 +77,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	/**
 	 * Constructs the {@code Demo}.
 	 */
-	public JMapNavigatorMain(String roadGraphFile) {
+	public QueryGeneratorMain(String roadGraphFile) {
 		super("JMapViewer Demo");
 		setSize(400, 400);
 
@@ -261,9 +260,9 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 						"Text files", "txt");
 				chooser.setFileFilter(filter);
 				chooser.setCurrentDirectory(new File("../../\\ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output"));
-				int returnVal = chooser.showOpenDialog(JMapNavigatorMain.this);
+				int returnVal = chooser.showOpenDialog(QueryGeneratorMain.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					clearRouteDisplay();
+					updateRouteDisplay();
 					try (BufferedReader br = new BufferedReader(
 							new FileReader(chooser.getSelectedFile().getAbsolutePath()))) {
 						String line = br.readLine();
@@ -326,20 +325,32 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 
 		// Poll timer
-		Timer timer = new Timer(500, new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (mapController.getRouteSolver().getRoutingState() == RoutingState.Routing
-						|| mapController.getRouteSolver().getNeedsDispalyRefresh()) {
-					refreshRouteDisplay();
-					mapController.getRouteSolver().resetNeedsDispalyRefresh();
-				}
-			}
-		});
-		timer.start();
+		//		Timer timer = new Timer(500, new ActionListener() {
+		//
+		//			@Override
+		//			public void actionPerformed(ActionEvent e) {
+		//				if (mapController.getRouteSolver().getRoutingState() == RoutingState.Routing
+		//						|| mapController.getRouteSolver().getNeedsDispalyRefresh()) {
+		//					refreshRouteDisplay();
+		//					mapController.getRouteSolver().resetNeedsDispalyRefresh();
+		//				}
+		//			}
+		//		});
+		//		timer.start();
 	}
 
+
+	private void updateRouteDisplay() {
+		clearRouteDisplay();
+
+		// Display start and target
+		MapMarkerDot start = new MapMarkerDot("Start", Color.BLUE, mapController.getRouteSolver().getStartCoordinate());
+		MapMarkerDot targ = new MapMarkerDot("Target", Color.RED, mapController.getRouteSolver().getTargetCoordinate());
+		map().addMapMarker(start);
+		map().addMapMarker(targ);
+		routeDots.add(start);
+		routeDots.add(targ);
+	}
 
 	private void clearRouteDisplay() {
 		// Clear dots
@@ -353,18 +364,10 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			map().removeMapPolygon(line);
 		}
 		routeLines.clear();
-
-		// Display start and target
-		MapMarkerDot start = new MapMarkerDot("Start", Color.BLUE, mapController.getRouteSolver().getStartCoordinate());
-		MapMarkerDot targ = new MapMarkerDot("Target", Color.RED, mapController.getRouteSolver().getTargetCoordinate());
-		map().addMapMarker(start);
-		map().addMapMarker(targ);
-		routeDots.add(start);
-		routeDots.add(targ);
 	}
 
 	private void refreshRouteDisplay() {
-		clearRouteDisplay();
+		updateRouteDisplay();
 
 		if (mapController.getRouteSolver().getRoutingState() == RoutingState.Standby) {
 			Coordinate lastCoord = null;
@@ -413,8 +416,6 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 		final boolean showQueries = true;
 		final boolean showQueryNumbers = false;
 		final boolean verifyRoutes = true;
-
-		clearRouteDisplay();
 
 		List<MapNode> mapNodes = new ArrayList<>(mapController.getRouteSolver().getMapNodes().values());
 
@@ -518,7 +519,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 	public static void main(String[] args) {
 		String roadGraphFile = "data" + File.separator + "graph.bin";
 		if (args.length >= 1) roadGraphFile = args[0];
-		new JMapNavigatorMain(roadGraphFile).setVisible(true);
+		new QueryGeneratorMain(roadGraphFile).setVisible(true);
 	}
 
 	private void updateZoomParameters() {

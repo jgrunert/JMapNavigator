@@ -9,12 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.math3.util.Pair;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 
 public class QueryGeneration {
 
 
-	public static List<MapNodeCluster> cityClustering(Collection<MapNode> mapNodes, int numSpots, double rangeDivisor) {
+	/**
+	 * Returns city clusters and their size.
+	 */
+	public static List<Pair<MapNodeCluster, Integer>> cityClustering(Collection<MapNode> mapNodes, int numSpots,
+			double rangeDivisor) {
 		// Load cities and their sizes
 		List<String> largestCities = new ArrayList<>();
 		List<Integer> largestCitiesSizes = new ArrayList<>();
@@ -49,7 +54,7 @@ public class QueryGeneration {
 		}
 
 		// Create city clusters
-		List<MapNodeCluster> clusters = new ArrayList<>(largestCities.size());
+		List<Pair<MapNodeCluster, Integer>> clusters = new ArrayList<>(largestCities.size());
 		for (int i = 0; i < largestCities.size(); i++) {
 			String cName = largestCities.get(i);
 			int cPopulation = largestCitiesSizes.get(i);
@@ -59,15 +64,17 @@ public class QueryGeneration {
 				continue;
 			}
 			double cRange = Math.sqrt((double) cPopulation) / rangeDivisor;
-			clusters.add(
-					new MapNodeCluster(Utils.coordinateToVector(citiesCoordinates.get(cName)), cPopulation, cRange));
+			clusters.add(new Pair<>(
+					new MapNodeCluster(Utils.coordinateToVector(citiesCoordinates.get(cName)), cPopulation, cRange),
+					cPopulation));
 		}
 
 		// Assign nodes to clusters
 		for (MapNode node : mapNodes) {
 			MapNodeCluster bestCluster = null;
 			double bestClusterDist = Double.POSITIVE_INFINITY;
-			for (MapNodeCluster cluster : clusters) {
+			for (Pair<MapNodeCluster, Integer> clusterPair : clusters) {
+				MapNodeCluster cluster = clusterPair.getFirst();
 				double dist = Utils.calcVector2Dist(cluster.center, new double[] { node.Lat, node.Lon });
 				if (dist <= cluster.range && dist < bestClusterDist) {
 					bestCluster = cluster;
