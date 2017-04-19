@@ -30,7 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.math3.util.Pair;
-import org.openstreetmap.gui.jmapnavigator.IRouteSolver.RoutingState;
 import org.openstreetmap.gui.jmapnavigator.QueryGeneration.MapNodeCluster;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
@@ -70,17 +69,27 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 	private List<MapMarkerDot> routeDots = new ArrayList<>();
 	private List<MapPolygonImpl> routeLines = new ArrayList<>();
 
-	private static final int MAX_ROUTE_PREVIEW_DOTS = 50;
+	//	private static final int MAX_ROUTE_PREVIEW_DOTS = 50;
+
+	private final String citiesFile;
+	private final String citiesCoordsFile;
+	private final int numQueriesToGenerate;
+	private final int numHotspots;
 
 
 
 	/**
 	 * Constructs the {@code Demo}.
 	 */
-	public QueryGeneratorMain(String roadGraphFile) {
+	public QueryGeneratorMain(String roadGraphFile, String citiesFile, String citiesCoordsFile, int numQueries,
+			int numHotspots) {
 		super("JMapViewer Demo");
 		setSize(400, 400);
 
+		this.citiesFile = citiesFile;
+		this.citiesCoordsFile = citiesCoordsFile;
+		this.numQueriesToGenerate = numQueries;
+		this.numHotspots = numHotspots;
 		treeMap = new JMapViewerTree("Zones", roadGraphFile);
 		mapController = treeMap.getMapController();
 
@@ -366,52 +375,51 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 		routeLines.clear();
 	}
 
-	private void refreshRouteDisplay() {
-		updateRouteDisplay();
-
-		if (mapController.getRouteSolver().getRoutingState() == RoutingState.Standby) {
-			Coordinate lastCoord = null;
-			for (Coordinate coord : mapController.getRouteSolver().getCalculatedRoute()) {
-				if (lastCoord != null) {
-					MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
-					routeLines.add(routPoly);
-					map().addMapPolygon(routPoly);
-				}
-				lastCoord = coord;
-			}
-
-			//			routeDistLabel.setText(((int) mapController.getRouteSolver().getDistOfRoute() / 1000.0f) + " km");
-			double timeOfRouteHours = mapController.getRouteSolver().getTimeOfRoute() / 3600;
-			int timeHours = (int) timeOfRouteHours;
-			int timeMinutes = (int) (60 * (timeOfRouteHours - timeHours));
-			routeTimeLabel.setText(timeHours + ":" + timeMinutes + " h");
-		}
-
-
-		if (mapController.getRouteSolver().getRoutingState() != RoutingState.NotReady) {
-			List<Coordinate> routingPreviewDots = mapController.getRouteSolver().getRoutingPreviewDots();
-
-			for (int i = Math.max(0, routingPreviewDots.size() - MAX_ROUTE_PREVIEW_DOTS); i < routingPreviewDots.size(); i++) {
-				MapMarkerDot dot = new MapMarkerDot(new Color(255 - 255 * (routingPreviewDots.size() - i) / MAX_ROUTE_PREVIEW_DOTS, 0,
-						255 * (routingPreviewDots.size() - i) / MAX_ROUTE_PREVIEW_DOTS), routingPreviewDots.get(i));
-				map().addMapMarker(dot);
-				routeDots.add(dot);
-			}
-		}
-
-		if (mapController.getRouteSolver().getRoutingState() == RoutingState.Routing) {
-			Coordinate candCoord = mapController.getRouteSolver().getBestCandidateCoords();
-			if (candCoord != null) {
-				MapMarkerDot dot = new MapMarkerDot(Color.GREEN, candCoord);
-				map().addMapMarker(dot);
-				routeDots.add(dot);
-			}
-		}
-	}
+	//	private void refreshRouteDisplay() {
+	//		updateRouteDisplay();
+	//
+	//		if (mapController.getRouteSolver().getRoutingState() == RoutingState.Standby) {
+	//			Coordinate lastCoord = null;
+	//			for (Coordinate coord : mapController.getRouteSolver().getCalculatedRoute()) {
+	//				if (lastCoord != null) {
+	//					MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
+	//					routeLines.add(routPoly);
+	//					map().addMapPolygon(routPoly);
+	//				}
+	//				lastCoord = coord;
+	//			}
+	//
+	//			//			routeDistLabel.setText(((int) mapController.getRouteSolver().getDistOfRoute() / 1000.0f) + " km");
+	//			double timeOfRouteHours = mapController.getRouteSolver().getTimeOfRoute() / 3600;
+	//			int timeHours = (int) timeOfRouteHours;
+	//			int timeMinutes = (int) (60 * (timeOfRouteHours - timeHours));
+	//			routeTimeLabel.setText(timeHours + ":" + timeMinutes + " h");
+	//		}
+	//
+	//
+	//		if (mapController.getRouteSolver().getRoutingState() != RoutingState.NotReady) {
+	//			List<Coordinate> routingPreviewDots = mapController.getRouteSolver().getRoutingPreviewDots();
+	//
+	//			for (int i = Math.max(0, routingPreviewDots.size() - MAX_ROUTE_PREVIEW_DOTS); i < routingPreviewDots.size(); i++) {
+	//				MapMarkerDot dot = new MapMarkerDot(new Color(255 - 255 * (routingPreviewDots.size() - i) / MAX_ROUTE_PREVIEW_DOTS, 0,
+	//						255 * (routingPreviewDots.size() - i) / MAX_ROUTE_PREVIEW_DOTS), routingPreviewDots.get(i));
+	//				map().addMapMarker(dot);
+	//				routeDots.add(dot);
+	//			}
+	//		}
+	//
+	//		if (mapController.getRouteSolver().getRoutingState() == RoutingState.Routing) {
+	//			Coordinate candCoord = mapController.getRouteSolver().getBestCandidateCoords();
+	//			if (candCoord != null) {
+	//				MapMarkerDot dot = new MapMarkerDot(Color.GREEN, candCoord);
+	//				map().addMapMarker(dot);
+	//				routeDots.add(dot);
+	//			}
+	//		}
+	//	}
 
 
 	private void generateQueries() {
-		final int queryGenerateCount = 32;
 		final boolean showCityHotspots = false;
 		final boolean showQueries = true;
 		final boolean showQueryNumbers = false;
@@ -420,7 +428,8 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 		List<MapNode> mapNodes = new ArrayList<>(mapController.getRouteSolver().getMapNodes().values());
 
 		// Get city clusters and the list with node counts to select with probabilities based on
-		List<Pair<MapNodeCluster, Integer>> cityClusters = QueryGeneration.cityClustering(mapNodes, 20, 50000);
+		List<Pair<MapNodeCluster, Integer>> cityClusters = QueryGeneration.cityClustering(mapNodes, numHotspots, 50000,
+				citiesFile, citiesCoordsFile);
 		int cityClusterTotalNodeCount = 0;
 		List<Integer> cityClusterCountsList = new ArrayList<>(cityClusters.size());
 		for (Pair<MapNodeCluster, Integer> cluster : cityClusters) {
@@ -435,7 +444,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 		List<Coordinate[]> queryCoords = new ArrayList<>();
 		try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
 
-			for (int i = 0; i < queryGenerateCount; i++) {
+			for (int i = 0; i < numQueriesToGenerate; i++) {
 				int rdClusterNode = rd.nextInt(cityClusterTotalNodeCount);
 				int rdCluster = 0;
 				for (; rdCluster < cityClusterCountsList.size(); rdCluster++) {
@@ -452,7 +461,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 					c1 = new Coordinate(n1.Lat, n1.Lon);
 				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
 
-				System.out.println("----- " + i + "/" + queryGenerateCount);
+				System.out.println("----- " + i + "/" + numQueriesToGenerate);
 				queryCoords.add(new Coordinate[] { c0, c1 });
 
 				writer.println("start\t" + n0.Id + "\t" + n1.Id);
@@ -517,9 +526,13 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 	 *            Main program arguments
 	 */
 	public static void main(String[] args) {
-		String roadGraphFile = "data" + File.separator + "graph.bin";
-		if (args.length >= 1) roadGraphFile = args[0];
-		new QueryGeneratorMain(roadGraphFile).setVisible(true);
+		if (args.length < 5) {
+			System.err.println(
+					"Not enough args. Usage: [roadgraph file] [cities sizes file] [cities coords file] [numQueriesToGenerate] [numHotspots]");
+			return;
+		}
+		new QueryGeneratorMain(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]))
+				.setVisible(true);
 	}
 
 	private void updateZoomParameters() {

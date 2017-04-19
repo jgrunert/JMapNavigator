@@ -19,12 +19,12 @@ public class QueryGeneration {
 	 * Returns city clusters and their size.
 	 */
 	public static List<Pair<MapNodeCluster, Integer>> cityClustering(Collection<MapNode> mapNodes, int numSpots,
-			double rangeDivisor) {
+			double rangeDivisor, String citiesFile, String citiesCoordsFile) {
 		// Load cities and their sizes
 		List<String> largestCities = new ArrayList<>();
 		List<Integer> largestCitiesSizes = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(
-				new FileReader("data" + File.separator + "cities_bw_sizes.csv"))) {
+				new FileReader(citiesFile))) {
 			String line;
 			while ((line = reader.readLine()) != null && largestCities.size() < numSpots) {
 				String[] split = line.split(";");

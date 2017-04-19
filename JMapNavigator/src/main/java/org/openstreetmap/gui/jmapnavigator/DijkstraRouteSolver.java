@@ -24,7 +24,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 	private final Random random = new Random(0);
 
-	private List<Long> mapNodeIDsList;
+	//	private List<Long> mapNodeIDsList;
 	private final Long2ObjectMap<MapNode> mapNodes = new Long2ObjectOpenHashMap<>();
 
 	private final String roadGraphFile;
@@ -104,10 +104,13 @@ public class DijkstraRouteSolver implements IRouteSolver {
 					edgeDists[iEdge] = (float) reader.readDouble(); // TODO Double?
 				}
 				mapNodes.put(index, new MapNode(index, lat, lon, edgeTargets, edgeDists));
+
+				if (iNode % 300000 == 0) System.out.println(((long) iNode * 100 / numVertices) + "%");
 			}
+			System.out.println("100%");
 		}
 
-		mapNodeIDsList = new ArrayList<>(mapNodes.keySet());
+		//		mapNodeIDsList = new ArrayList<>(mapNodes.keySet());
 	}
 
 
@@ -421,17 +424,19 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	 */
 	@Override
 	public long getRandomRouteNodeIndex() {
-		long pt = mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
-		while (mapNodes.get(pt).EdgeDists.length < 2) {
-			pt = mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
-		}
-		return pt;
+		//		long pt = mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
+		//		while (mapNodes.get(pt).EdgeDists.length < 2) {
+		//			pt = mapNodeIDsList.get(random.nextInt(mapNodeIDsList.size()));
+		//		}
+		//		return pt;
+		throw new RuntimeException("Not implemented");
 	}
 
 
 	@Override
 	public List<Long> getMapNodeIDsList() {
-		return mapNodeIDsList;
+		//		return mapNodeIDsList;
+		throw new RuntimeException("Not implemented");
 	}
 
 

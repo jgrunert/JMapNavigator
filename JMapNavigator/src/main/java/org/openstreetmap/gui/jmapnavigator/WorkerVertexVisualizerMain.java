@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -72,7 +73,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 	private static final int MAX_ROUTE_PREVIEW_DOTS = 50;
 
 	private String selectedVertexDirectory = null;
-	private int workerCount = 8; // TODO Worker count
+	private int workerCount = 900; // TODO Worker count
 	private String vertexStatFileName;
 	private JScrollBar vertexSampleScrollBar;
 
@@ -346,15 +347,20 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setCurrentDirectory(
 				new File(selectedVertexDirectory != null ? selectedVertexDirectory
-						: new File("../../").getAbsolutePath()));
+						: new File("../../ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output\\stats")
+						.getAbsolutePath()));
 		chooser.setAcceptAllFileFilterUsed(false);
 		int returnVal = chooser.showOpenDialog(WorkerVertexVisualizerMain.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			selectedVertexDirectory = chooser.getSelectedFile().getPath();
 
 			int sampleCount = 0;
+			String fileName0 = selectedVertexDirectory + File.separator + "worker0" + vertexStatFileName;
+			if (!new File(fileName0).exists()) {
+				fileName0 = selectedVertexDirectory + File.separator + "worker100" + vertexStatFileName;
+			}
 			try (BufferedReader reader = new BufferedReader(
-					new FileReader(selectedVertexDirectory + File.separator + "worker0" + vertexStatFileName))) {
+					new FileReader(fileName0))) {
 				while (reader.readLine() != null) {
 					sampleCount++;
 				}
@@ -369,19 +375,26 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 		}
 	}
 
+	int dotAlpha = 140;
+	int maxDots = 4000;
+
 	private void loadWorkerVerticesSample(String statsDir, int workerCount, int sampleIndex) {
 		clearRouteDisplay();
 		map().removeAll();
 		map().removeAllMapMarkers();
 		map().removeAllMapPolygons();
 
-		Color[] colorPalette = Utils.generateColors(workerCount);
+		Color[] colorPalette = Utils.generateColors(workerCount, dotAlpha);
 		IRouteSolver routeSolver = mapController.getRouteSolver();
+		List<MapMarkerDot> dots = new ArrayList<>();
 		for(int iW = 0; iW < workerCount; iW++) {
 			Color col = colorPalette[iW];
 
+			String filename = statsDir + File.separator + "worker" + iW + vertexStatFileName;
+			if (!new File(filename).exists()) continue;
+
 			try (BufferedReader reader = new BufferedReader(
-					new FileReader(statsDir + File.separator + "worker" + iW + vertexStatFileName))) {
+					new FileReader(filename))) {
 				for (int i = 0; i < sampleIndex; i++) {
 					reader.readLine();
 				}
@@ -392,7 +405,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 					for (int i = 0; i < lineSplit.length; i++) {
 						String s = lineSplit[i];
 						if (!s.isEmpty())
-							map().addMapMarker(new MapMarkerDot("", col,
+							dots.add(new MapMarkerDot("", col,
 									routeSolver.getCoordinatesByIndex(Integer.parseInt(s)), 3));
 					}
 				}
@@ -403,6 +416,15 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+
+		Collections.shuffle(dots);
+		if (dots.size() > maxDots) {
+			dots = new ArrayList<>(dots.subList(0, maxDots));
+		}
+
+		for (MapMarkerDot dot : dots) {
+			map().addMapMarker(dot);
 		}
 	}
 

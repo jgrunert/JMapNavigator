@@ -14,11 +14,8 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -30,9 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.apache.commons.math3.util.Pair;
 import org.openstreetmap.gui.jmapnavigator.IRouteSolver.RoutingState;
-import org.openstreetmap.gui.jmapnavigator.QueryGeneration.MapNodeCluster;
 import org.openstreetmap.gui.jmapviewer.Coordinate;
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 import org.openstreetmap.gui.jmapviewer.JMapViewerTree;
@@ -284,17 +279,17 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 		});
 		panelBottom.add(buttonLoadShowPath);
-
-		// Generate queries
-		JButton buttonGenerateQueries = new JButton("Generate queries");
-		buttonGenerateQueries.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				generateQueries();
-			}
-		});
-		panelBottom.add(buttonGenerateQueries);
+		//
+		//		// Generate queries
+		//		JButton buttonGenerateQueries = new JButton("Generate queries");
+		//		buttonGenerateQueries.addActionListener(new ActionListener() {
+		//
+		//			@Override
+		//			public void actionPerformed(ActionEvent e) {
+		//				generateQueries();
+		//			}
+		//		});
+		//		panelBottom.add(buttonGenerateQueries);
 
 		add(treeMap, BorderLayout.CENTER);
 
@@ -405,103 +400,6 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 		}
 	}
-
-
-	private void generateQueries() {
-		final int queryGenerateCount = 32;
-		final boolean showCityHotspots = false;
-		final boolean showQueries = true;
-		final boolean showQueryNumbers = false;
-		final boolean verifyRoutes = true;
-
-		clearRouteDisplay();
-
-		List<MapNode> mapNodes = new ArrayList<>(mapController.getRouteSolver().getMapNodes().values());
-
-		// Get city clusters and the list with node counts to select with probabilities based on
-		List<Pair<MapNodeCluster, Integer>> cityClusters = QueryGeneration.cityClustering(mapNodes, 20, 50000);
-		int cityClusterTotalNodeCount = 0;
-		List<Integer> cityClusterCountsList = new ArrayList<>(cityClusters.size());
-		for (Pair<MapNodeCluster, Integer> cluster : cityClusters) {
-			cityClusterTotalNodeCount += cluster.getSecond();
-			cityClusterCountsList.add(cityClusterTotalNodeCount);
-		}
-
-		Color[] colorPalette = Utils.generateColors(cityClusters.size());
-		double pointDrawRate = 0.01;
-		Random rd = new Random(0);
-
-		List<Coordinate[]> queryCoords = new ArrayList<>();
-		try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
-
-			for (int i = 0; i < queryGenerateCount; i++) {
-				int rdClusterNode = rd.nextInt(cityClusterTotalNodeCount);
-				int rdCluster = 0;
-				for (; rdCluster < cityClusterCountsList.size(); rdCluster++) {
-					if (cityClusterCountsList.get(rdCluster) > rdClusterNode) break;
-				}
-				MapNodeCluster cluster = cityClusters.get(rdCluster).getFirst();
-
-				MapNode n0, n1;
-				Coordinate c0, c1;
-				do {
-					n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					c0 = new Coordinate(n0.Lat, n0.Lon);
-					c1 = new Coordinate(n1.Lat, n1.Lon);
-				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
-
-				System.out.println("----- " + i + "/" + queryGenerateCount);
-				queryCoords.add(new Coordinate[] { c0, c1 });
-
-				writer.println("start\t" + n0.Id + "\t" + n1.Id);
-			}
-		}
-		catch (Exception e1) {
-			e1.printStackTrace();
-		}
-
-		clearRouteDisplay();
-
-		// Visualize cities clusters
-		if (showCityHotspots) {
-			for (int i = 0; i < cityClusters.size(); i++) {
-				Color clusterColor = colorPalette[i];
-				MapNodeCluster cluster = cityClusters.get(i).getFirst();
-				double[] centerPt = cluster.center;
-				MapMarkerDot dot = new MapMarkerDot(Integer.toString(i), clusterColor,
-						new Coordinate(centerPt[0], centerPt[1]), 8);
-
-				Color weakClusterColor = new Color(clusterColor.getRed(), clusterColor.getGreen(),
-						clusterColor.getBlue(), 50);
-				for (MapNode clusterPt : cluster.nodes) {
-					if (rd.nextDouble() < pointDrawRate) {
-						MapMarkerDot ptDot = new MapMarkerDot("", weakClusterColor,
-								new Coordinate(clusterPt.Lat, clusterPt.Lon), 3);
-						map().addMapMarker(ptDot);
-					}
-				}
-
-				map().addMapMarker(dot);
-			}
-		}
-
-		// Visualize query routes
-		if (showQueries) {
-			int queryIndex = 0;
-			for (Coordinate[] qCoord : queryCoords) {
-				Coordinate c0 = qCoord[0];
-				Coordinate c1 = qCoord[1];
-
-				map().addMapMarker(new MapMarkerDot(showQueryNumbers ? "" + queryIndex : "", Color.RED, c0, 3));
-				map().addMapMarker(new MapMarkerDot(showQueryNumbers ? "" + queryIndex : "", Color.BLUE, c1, 3));
-				map().addMapPolygon(new MapPolygonImpl(Color.BLUE, c1, c1, c0));
-
-				queryIndex++;
-			}
-		}
-	}
-
 
 
 

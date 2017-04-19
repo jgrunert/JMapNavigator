@@ -227,9 +227,14 @@ public class Utils {
 
 
 	public static Color[] generateColors(int n) {
+		return generateColors(n, 1);
+	}
+
+	public static Color[] generateColors(int n, int alpha) {
 		Color[] cols = new Color[n];
 		for (int i = 0; i < n; i++) {
-			cols[i] = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
+			Color c = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
+			cols[i] = new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
 		}
 		return cols;
 	}
