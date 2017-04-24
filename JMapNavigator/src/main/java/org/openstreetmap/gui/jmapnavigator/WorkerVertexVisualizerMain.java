@@ -73,7 +73,6 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 	private static final int MAX_ROUTE_PREVIEW_DOTS = 50;
 
 	private String selectedVertexDirectory = null;
-	private int workerCount = 900; // TODO Worker count
 	private String vertexStatFileName;
 	private JScrollBar vertexSampleScrollBar;
 
@@ -221,7 +220,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent arg0) {
 				if (selectedVertexDirectory != null) {
-					loadWorkerVerticesSample(selectedVertexDirectory, workerCount, vertexSampleScrollBar.getValue());
+					loadWorkerVerticesSample(selectedVertexDirectory, vertexSampleScrollBar.getValue());
 				}
 			}
 
@@ -347,7 +346,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setCurrentDirectory(
 				new File(selectedVertexDirectory != null ? selectedVertexDirectory
-						: new File("../../ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output\\stats")
+						: new File("../../ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output")
 						.getAbsolutePath()));
 		chooser.setAcceptAllFileFilterUsed(false);
 		int returnVal = chooser.showOpenDialog(WorkerVertexVisualizerMain.this);
@@ -355,12 +354,19 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			selectedVertexDirectory = chooser.getSelectedFile().getPath();
 
 			int sampleCount = 0;
-			String fileName0 = selectedVertexDirectory + File.separator + "worker0" + vertexStatFileName;
-			if (!new File(fileName0).exists()) {
-				fileName0 = selectedVertexDirectory + File.separator + "worker100" + vertexStatFileName;
+
+			String fileName = null;
+			for (int i = 0; i <= 1000; i++) {
+				fileName = selectedVertexDirectory + File.separator + "stats" + File.separator + "worker" + i
+						+ vertexStatFileName;
+				if (new File(fileName).exists()) {
+					break;
+				}
 			}
+			if (fileName == null) System.err.println("No worker file found");
+
 			try (BufferedReader reader = new BufferedReader(
-					new FileReader(fileName0))) {
+					new FileReader(fileName))) {
 				while (reader.readLine() != null) {
 					sampleCount++;
 				}
@@ -371,26 +377,44 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			vertexSampleScrollBar.setValue(0);
 			vertexSampleScrollBar.setMaximum(sampleCount);
 
-			loadWorkerVerticesSample(selectedVertexDirectory, workerCount, 0);
+			loadWorkerVerticesSample(selectedVertexDirectory, 0);
 		}
 	}
 
 	int dotAlpha = 140;
 	int maxDots = 4000;
 
-	private void loadWorkerVerticesSample(String statsDir, int workerCount, int sampleIndex) {
+	private void loadWorkerVerticesSample(String outputDir, int sampleIndex) {
 		clearRouteDisplay();
 		map().removeAll();
 		map().removeAllMapMarkers();
 		map().removeAllMapPolygons();
 
-		Color[] colorPalette = Utils.generateColors(workerCount, dotAlpha);
+		List<Integer> workers = new ArrayList<>();
+
+		try (BufferedReader reader = new BufferedReader(new FileReader(outputDir + File.separator + "setup.txt"))) {
+			reader.readLine();
+			reader.readLine();
+			reader.readLine();
+			String line;
+			while ((line = reader.readLine()) != null) {
+				String[] split = line.split("\t");
+				workers.add(Integer.parseInt(split[1]));
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+
+		Color[] colorPalette = Utils.generateColors(workers.size(), dotAlpha);
 		IRouteSolver routeSolver = mapController.getRouteSolver();
 		List<MapMarkerDot> dots = new ArrayList<>();
-		for(int iW = 0; iW < workerCount; iW++) {
+		for (int iW = 0; iW < workers.size(); iW++) {
 			Color col = colorPalette[iW];
 
-			String filename = statsDir + File.separator + "worker" + iW + vertexStatFileName;
+			String filename = outputDir + File.separator + "stats" + File.separator + "worker" + workers.get(iW)
+			+ vertexStatFileName;
 			if (!new File(filename).exists()) continue;
 
 			try (BufferedReader reader = new BufferedReader(

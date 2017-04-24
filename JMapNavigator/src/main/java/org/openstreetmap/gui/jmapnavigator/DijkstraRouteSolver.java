@@ -22,7 +22,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 	// General constants
 	private static int ROUTE_HEAP_CAPACITY = 1000000;
 
-	private final Random random = new Random(0);
+	//	private final Random random = new Random(0);
 
 	//	private List<Long> mapNodeIDsList;
 	private final Long2ObjectMap<MapNode> mapNodes = new Long2ObjectOpenHashMap<>();
