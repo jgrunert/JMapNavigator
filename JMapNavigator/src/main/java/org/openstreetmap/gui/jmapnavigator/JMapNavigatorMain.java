@@ -255,7 +255,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 				FileNameExtensionFilter filter = new FileNameExtensionFilter(
 						"Text files", "txt");
 				chooser.setFileFilter(filter);
-				chooser.setCurrentDirectory(new File("../../\\ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output"));
+				chooser.setCurrentDirectory(new File("../../\\ConcurrentGraph\\concurrent-graph\\output"));
 				int returnVal = chooser.showOpenDialog(JMapNavigatorMain.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					clearRouteDisplay();
