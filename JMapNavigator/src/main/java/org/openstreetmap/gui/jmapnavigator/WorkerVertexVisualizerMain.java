@@ -346,8 +346,8 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setCurrentDirectory(
 				new File(selectedVertexDirectory != null ? selectedVertexDirectory
-						: new File("../../ConcurrentGraph\\ConcurrentGraph\\concurrent-graph\\output")
-						.getAbsolutePath()));
+						: new File("../../ConcurrentGraph\\concurrent-graph\\output")
+								.getAbsolutePath()));
 		chooser.setAcceptAllFileFilterUsed(false);
 		int returnVal = chooser.showOpenDialog(WorkerVertexVisualizerMain.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -414,7 +414,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			Color col = colorPalette[iW];
 
 			String filename = outputDir + File.separator + "stats" + File.separator + "worker" + workers.get(iW)
-			+ vertexStatFileName;
+					+ vertexStatFileName;
 			if (!new File(filename).exists()) continue;
 
 			try (BufferedReader reader = new BufferedReader(
