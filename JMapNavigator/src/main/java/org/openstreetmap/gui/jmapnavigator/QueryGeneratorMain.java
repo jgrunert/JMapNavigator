@@ -444,6 +444,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 		List<Coordinate[]> queryCoords = new ArrayList<>();
 		try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
 
+			List<MapNode> nodeCandidates = new ArrayList<>();
 			for (int i = 0; i < numQueriesToGenerate; i++) {
 				int rdClusterNode = rd.nextInt(cityClusterTotalNodeCount);
 				int rdCluster = 0;
@@ -460,13 +461,25 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 					double minLen = Math.min(0, maxLen - 0.0001);
 					System.out.println(maxLen);
 					n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					//					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					do {
-						n1 = mapNodes.get(rd.nextInt(cluster.nodes.size()));
-						distTmp = Utils.calcVector2Dist(n0, n1);
-						//System.out.println(cluster.name + " " +Utils.calcVector2Dist(n0, n1));
+
+					nodeCandidates.clear();
+					for(MapNode node : mapNodes) {
+						distTmp = Utils.calcVector2Dist(n0, node);
+						if(distTmp >= minLen && distTmp <= maxLen) {
+							nodeCandidates.add(node);
+						}
 					}
-					while (distTmp < minLen || distTmp > maxLen);
+					n1 = nodeCandidates.get(rd.nextInt(nodeCandidates.size()));
+
+
+
+					//					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+					//					do {
+					//						n1 = mapNodes.get(rd.nextInt(cluster.nodes.size()));
+					//						distTmp = Utils.calcVector2Dist(n0, n1);
+					//						//System.out.println(cluster.name + " " +Utils.calcVector2Dist(n0, n1));
+					//					}
+					//					while (distTmp < minLen || distTmp > maxLen);
 
 					System.out.println(cluster.name + " " + Utils.calcVector2Dist(n0, n1));
 
