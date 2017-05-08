@@ -454,9 +454,22 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 
 				MapNode n0, n1;
 				Coordinate c0, c1;
+				double distTmp;
 				do {
+					double maxLen = Math.max(0.0001, rd.nextDouble() * 0.01); // TODO Configurable function
+					double minLen = Math.min(0, maxLen - 0.0001);
+					System.out.println(maxLen);
 					n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+					//					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+					do {
+						n1 = mapNodes.get(rd.nextInt(cluster.nodes.size()));
+						distTmp = Utils.calcVector2Dist(n0, n1);
+						//System.out.println(cluster.name + " " +Utils.calcVector2Dist(n0, n1));
+					}
+					while (distTmp < minLen || distTmp > maxLen);
+
+					System.out.println(cluster.name + " " + Utils.calcVector2Dist(n0, n1));
+
 					c0 = new Coordinate(n0.Lat, n0.Lon);
 					c1 = new Coordinate(n1.Lat, n1.Lon);
 				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
@@ -532,7 +545,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 			return;
 		}
 		new QueryGeneratorMain(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]))
-				.setVisible(true);
+		.setVisible(true);
 	}
 
 	private void updateZoomParameters() {

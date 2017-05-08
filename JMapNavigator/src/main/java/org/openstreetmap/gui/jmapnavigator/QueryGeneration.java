@@ -64,8 +64,7 @@ public class QueryGeneration {
 				continue;
 			}
 			double cRange = Math.sqrt((double) cPopulation) / rangeDivisor;
-			clusters.add(new Pair<>(
-					new MapNodeCluster(Utils.coordinateToVector(citiesCoordinates.get(cName)), cPopulation, cRange),
+			clusters.add(new Pair<>(new MapNodeCluster(largestCities.get(i), Utils.coordinateToVector(citiesCoordinates.get(cName)), cPopulation, cRange),
 					cPopulation));
 		}
 
@@ -90,14 +89,16 @@ public class QueryGeneration {
 
 	public static class MapNodeCluster {
 
+		public final String name;
 		public final double[] center;
 		public final int population;
 		public final double range;
 		public final List<MapNode> nodes;
 
 
-		public MapNodeCluster(double[] center, int population, double range) {
+		public MapNodeCluster(String name, double[] center, int population, double range) {
 			super();
+			this.name = name;
 			this.center = center;
 			this.population = population;
 			this.range = range;

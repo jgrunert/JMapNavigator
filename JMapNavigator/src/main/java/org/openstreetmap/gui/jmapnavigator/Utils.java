@@ -246,6 +246,12 @@ public class Utils {
 		return d0 * d0 + d1 * d1;
 	}
 
+	public static double calcVector2Dist(MapNode a, MapNode b) {
+		double d0 = a.Lat - b.Lat;
+		double d1 = a.Lon - b.Lon;
+		return d0 * d0 + d1 * d1;
+	}
+
 	public static double[] coordinateToVector(Coordinate coord) {
 		return new double[] { coord.getLat(), coord.getLon() };
 	}
