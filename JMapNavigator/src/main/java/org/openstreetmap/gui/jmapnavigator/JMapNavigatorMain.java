@@ -240,7 +240,7 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mapController.getRouteSolver().startCalculateRoute(true);
+				mapController.getRouteSolver().startCalculateRoute(true, 0);
 			}
 		});
 		panelBottom.add(buttonCalcManiacShort);

@@ -94,6 +94,7 @@ public class QueryGeneration {
 		public final int population;
 		public final double range;
 		public final List<MapNode> nodes;
+		public MapNodeCluster nextOtherCluster;
 
 
 		public MapNodeCluster(String name, double[] center, int population, double range) {

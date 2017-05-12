@@ -75,6 +75,14 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 	private final String citiesCoordsFile;
 	private final int numQueriesToGenerate;
 	private final int numHotspots;
+	private final double queriesMinLength = 0.0001;
+	private final double queriesMaxLength = 0.01;
+	private final int randomSeed = 3;
+	private final int verifyPathTimeout = 1000;
+	/** Indicates if more queries are generated at larger hotspots */
+	private final boolean hotspotDependantQueryCount = false;
+	/** Indicates if queries should be generated between hotspots */
+	private final boolean queriesBetweenHotspots = true;
 
 
 
@@ -253,7 +261,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mapController.getRouteSolver().startCalculateRoute(true);
+				mapController.getRouteSolver().startCalculateRoute(true, 0);
 			}
 		});
 		panelBottom.add(buttonCalcManiacShort);
@@ -439,53 +447,71 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 
 		Color[] colorPalette = Utils.generateColors(cityClusters.size());
 		double pointDrawRate = 0.01;
-		Random rd = new Random(0);
+		Random rd = new Random(randomSeed);
+
+		// Determine nextOtherClusters
+		for (Pair<MapNodeCluster, Integer> cluster : cityClusters) {
+			MapNodeCluster nextOtherCluster = null;
+			double nextClusterDist = Double.POSITIVE_INFINITY;
+			for (Pair<MapNodeCluster, Integer> cluster2 : cityClusters) {
+				if (cluster2 == cluster) continue;
+				double dist = Utils.calcNodeDistPrecise(cluster.getKey().center, cluster2.getKey().center);
+				if (dist < nextClusterDist) {
+					nextClusterDist = dist;
+					nextOtherCluster = cluster2.getKey();
+				}
+			}
+			cluster.getKey().nextOtherCluster = nextOtherCluster;
+		}
+
 
 		List<Coordinate[]> queryCoords = new ArrayList<>();
 		try (PrintWriter writer = new PrintWriter(new FileWriter("queries.txt"))) {
 
 			List<MapNode> nodeCandidates = new ArrayList<>();
 			for (int i = 0; i < numQueriesToGenerate; i++) {
-				int rdClusterNode = rd.nextInt(cityClusterTotalNodeCount);
-				int rdCluster = 0;
-				for (; rdCluster < cityClusterCountsList.size(); rdCluster++) {
-					if (cityClusterCountsList.get(rdCluster) > rdClusterNode) break;
+				MapNodeCluster startCluster;
+				if (hotspotDependantQueryCount) {
+					int rdClusterNode = rd.nextInt(cityClusterTotalNodeCount);
+					int rdCluster = 0;
+					for (; rdCluster < cityClusterCountsList.size(); rdCluster++) {
+						if (cityClusterCountsList.get(rdCluster) > rdClusterNode) break;
+					}
+					startCluster = cityClusters.get(rdCluster).getFirst();
 				}
-				MapNodeCluster cluster = cityClusters.get(rdCluster).getFirst();
+				else {
+					startCluster = cityClusters.get(rd.nextInt(cityClusters.size())).getFirst();
+				}
+
 
 				MapNode n0, n1;
 				Coordinate c0, c1;
 				double distTmp;
 				do {
-					double maxLen = Math.max(0.0001, rd.nextDouble() * 0.01); // TODO Configurable function
-					double minLen = Math.min(0, maxLen - 0.0001);
+					double maxLen = Math.max(queriesMinLength, rd.nextDouble() * queriesMaxLength); // TODO Configurable function
+					double minLen = Math.min(Double.MIN_NORMAL, maxLen - queriesMinLength);
 					System.out.println(maxLen);
-					n0 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
+					n0 = startCluster.nodes.get(rd.nextInt(startCluster.nodes.size()));
 
-					nodeCandidates.clear();
-					for(MapNode node : mapNodes) {
-						distTmp = Utils.calcVector2Dist(n0, node);
-						if(distTmp >= minLen && distTmp <= maxLen) {
-							nodeCandidates.add(node);
-						}
+					if (queriesBetweenHotspots) {
+						n1 = startCluster.nextOtherCluster.nodes.get(rd.nextInt(startCluster.nextOtherCluster.nodes.size()));
 					}
-					n1 = nodeCandidates.get(rd.nextInt(nodeCandidates.size()));
+					else {
+						nodeCandidates.clear();
+						for(MapNode node : mapNodes) {
+							distTmp = Utils.calcVector2Dist(n0, node);
+							if(distTmp >= minLen && distTmp <= maxLen) {
+								nodeCandidates.add(node);
+							}
+						}
+						n1 = nodeCandidates.get(rd.nextInt(nodeCandidates.size()));
+					}
 
-
-
-					//					n1 = cluster.nodes.get(rd.nextInt(cluster.nodes.size()));
-					//					do {
-					//						n1 = mapNodes.get(rd.nextInt(cluster.nodes.size()));
-					//						distTmp = Utils.calcVector2Dist(n0, n1);
-					//						//System.out.println(cluster.name + " " +Utils.calcVector2Dist(n0, n1));
-					//					}
-					//					while (distTmp < minLen || distTmp > maxLen);
-
-					System.out.println(cluster.name + " " + Utils.calcVector2Dist(n0, n1));
+					System.out.println(startCluster.name + " " + Utils.calcVector2Dist(n0, n1));
 
 					c0 = new Coordinate(n0.Lat, n0.Lon);
 					c1 = new Coordinate(n1.Lat, n1.Lon);
-				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id));
+				} while (verifyRoutes && !mapController.getRouteSolver().checkIfPathExisting(n0.Id, n1.Id, verifyPathTimeout));
 
 				System.out.println("----- " + i + "/" + numQueriesToGenerate);
 				queryCoords.add(new Coordinate[] { c0, c1 });

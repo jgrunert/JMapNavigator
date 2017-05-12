@@ -39,7 +39,7 @@ public interface IRouteSolver {
 
 	Long findNextNode(float lat, float lon);
 
-	void startCalculateRoute(boolean updateDisplay);
+	void startCalculateRoute(boolean updateDisplay, int timeout);
 
 	Coordinate getBestCandidateCoords();
 
@@ -56,5 +56,5 @@ public interface IRouteSolver {
 	long getRandomRouteNodeIndex();
 
 
-	boolean checkIfPathExisting(long fromNodeIndex, long toNodeIndex);
+	boolean checkIfPathExisting(long fromNodeIndex, long toNodeIndex, int timeout);
 }

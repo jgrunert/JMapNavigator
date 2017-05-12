@@ -116,7 +116,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 
 	@Override
-	public void startCalculateRoute(boolean updateDisplay) {
+	public void startCalculateRoute(boolean updateDisplay, int timeout) {
 
 		if (state != RoutingState.Standby) {
 			System.err.println("Routing not available");
@@ -183,6 +183,16 @@ public class DijkstraRouteSolver implements IRouteSolver {
 		});
 		routingThread.setName("RoutingThread");
 		routingThread.start();
+
+		if (timeout > 0) {
+			try {
+				routingThread.join(timeout);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			routingThread.interrupt();
+		}
 	}
 
 
@@ -192,7 +202,7 @@ public class DijkstraRouteSolver implements IRouteSolver {
 		MapNode visNode;
 
 		// Find route with Dijkstra
-		while (!routeDistHeap.isEmpty()) {
+		while (!routeDistHeap.isEmpty() && !Thread.interrupted()) {
 			// Remove and get index
 			visNodeIndex = routeDistHeap.removeFirst();
 			bestCandidateNode = visNodeIndex;
@@ -447,10 +457,10 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 
 	@Override
-	public boolean checkIfPathExisting(long fromNodeIndex, long toNodeIndex) {
+	public boolean checkIfPathExisting(long fromNodeIndex, long toNodeIndex, int timeout) {
 		setStartNode(fromNodeIndex);
 		setTargetNode(toNodeIndex);
-		startCalculateRoute(false);
+		startCalculateRoute(false, timeout);
 		while (state == RoutingState.Routing) {
 			try {
 				Thread.sleep(1);

@@ -163,7 +163,11 @@ public class Utils {
 
 
 
-	public static float calcNodeDistPrecise(float lat1, float lon1, float lat2, float lon2) {
+	public static float calcNodeDistPrecise(double[] a, double[] b) {
+		return calcNodeDistPrecise(a[0], a[1], b[0], b[1]);
+	}
+
+	public static float calcNodeDistPrecise(double lat1, double lon1, double lat2, double lon2) {
 		double earthRadius = 6371000; //meters
 
 		double dLat = Math.toRadians(lat2 - lat1);

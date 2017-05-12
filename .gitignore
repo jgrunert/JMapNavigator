@@ -16,3 +16,4 @@ JMapNavigator/DistCache.bin
 JMapNavigator/queries.txt
 JMapNavigator/data/de.bin
 JMapNavigator/data/bw.bin
+*.log
