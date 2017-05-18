@@ -430,7 +430,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 	private void generateQueries() {
 		final boolean showCityHotspots = false;
 		final boolean showQueries = true;
-		final boolean showQueryNumbers = false;
+		final boolean showQueryNumbers = true;
 		final boolean verifyRoutes = true;
 
 		List<MapNode> mapNodes = new ArrayList<>(mapController.getRouteSolver().getMapNodes().values());
