@@ -77,10 +77,12 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 	private final int numHotspots;
 	private final double queriesMinLength = 0.0001;
 	private final double queriesMaxLength = 0.01;
-	private final int randomSeed = 3;
+	private final int randomSeed = 0;
 	private final int verifyPathTimeout = 1000;
 	/** Indicates if more queries are generated at larger hotspots */
 	private final boolean hotspotDependantQueryCount = false;
+	/** Indicates if queries generated in repeating pattern on hotspots */
+	private final boolean queriesRoundRobin = true;
 	/** Indicates if queries should be generated between hotspots */
 	private final boolean queriesBetweenHotspots = true;
 
@@ -480,7 +482,12 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 					startCluster = cityClusters.get(rdCluster).getFirst();
 				}
 				else {
-					startCluster = cityClusters.get(rd.nextInt(cityClusters.size())).getFirst();
+					if (queriesRoundRobin) {
+						startCluster = cityClusters.get(i % cityClusters.size()).getFirst();
+					}
+					else {
+						startCluster = cityClusters.get(rd.nextInt(cityClusters.size())).getFirst();
+					}
 				}
 
 
@@ -498,9 +505,9 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 					}
 					else {
 						nodeCandidates.clear();
-						for(MapNode node : mapNodes) {
+						for (MapNode node : mapNodes) {
 							distTmp = Utils.calcVector2Dist(n0, node);
-							if(distTmp >= minLen && distTmp <= maxLen) {
+							if (distTmp >= minLen && distTmp <= maxLen) {
 								nodeCandidates.add(node);
 							}
 						}
@@ -566,8 +573,6 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 
 
 
-
-
 	private JMapViewer map() {
 		return treeMap.getViewer();
 	}
@@ -584,7 +589,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 			return;
 		}
 		new QueryGeneratorMain(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]))
-		.setVisible(true);
+				.setVisible(true);
 	}
 
 	private void updateZoomParameters() {

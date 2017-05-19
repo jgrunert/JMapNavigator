@@ -347,7 +347,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 		chooser.setCurrentDirectory(
 				new File(selectedVertexDirectory != null ? selectedVertexDirectory
 						: new File("../../ConcurrentGraph\\concurrent-graph\\output")
-						.getAbsolutePath()));
+								.getAbsolutePath()));
 		chooser.setAcceptAllFileFilterUsed(false);
 		int returnVal = chooser.showOpenDialog(WorkerVertexVisualizerMain.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -414,7 +414,7 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 			Color col = colorPalette[iW];
 
 			String filename = outputDir + File.separator + "stats" + File.separator + "worker" + workers.get(iW)
-			+ vertexStatFileName;
+					+ vertexStatFileName;
 			if (!new File(filename).exists()) continue;
 
 			try (BufferedReader reader = new BufferedReader(
@@ -423,13 +423,16 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 					reader.readLine();
 				}
 
+				int showTextIndex = 0;
 				String line = reader.readLine();
 				if (line != null) {
 					String[] lineSplit = line.split(";");
 					for (int i = 0; i < lineSplit.length; i++) {
 						String s = lineSplit[i];
+						String text = (showTextIndex % 100) == 0 ? Integer.toString(iW) : "";
+						showTextIndex++;
 						if (!s.isEmpty())
-							dots.add(new MapMarkerDot("", col,
+							dots.add(new MapMarkerDot(text, col,
 									routeSolver.getCoordinatesByIndex(Integer.parseInt(s)), 3));
 					}
 				}
