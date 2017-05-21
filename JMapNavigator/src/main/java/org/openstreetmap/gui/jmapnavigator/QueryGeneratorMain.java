@@ -78,13 +78,13 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 	private final double queriesMinLength = 0.0001;
 	private final double queriesMaxLength = 0.01;
 	private final int randomSeed = 0;
-	private final int verifyPathTimeout = 1000;
+	private final int verifyPathTimeout = 4000;
 	/** Indicates if more queries are generated at larger hotspots */
 	private final boolean hotspotDependantQueryCount = false;
 	/** Indicates if queries generated in repeating pattern on hotspots */
 	private final boolean queriesRoundRobin = true;
 	/** Indicates if queries should be generated between hotspots */
-	private final boolean queriesBetweenHotspots = true;
+	private final boolean queriesBetweenHotspots = false;
 
 
 
@@ -589,7 +589,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 			return;
 		}
 		new QueryGeneratorMain(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]))
-				.setVisible(true);
+		.setVisible(true);
 	}
 
 	private void updateZoomParameters() {
