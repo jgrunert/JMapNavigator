@@ -279,6 +279,47 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 		});
 		panelBottom.add(buttonLoadShowPath);
+
+
+
+		JButton buttonLoadShowAllPaths = new JButton("Load all Paths");
+		buttonLoadShowAllPaths.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setCurrentDirectory(new File("../../\\ConcurrentGraph\\concurrent-graph\\output"));
+				int returnVal = chooser.showOpenDialog(JMapNavigatorMain.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					clearRouteDisplay();
+					String selectedPath = chooser.getSelectedFile().getPath();
+					for (int i = 0; true; i++) { // TODO
+						try (BufferedReader br = new BufferedReader(
+								new FileReader(selectedPath + File.separator + i + File.separator + "path.txt"))) {
+							String line = br.readLine();
+
+							Coordinate lastCoord = mapController.getRouteSolver()
+									.getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
+							while ((line = br.readLine()) != null) {
+								Coordinate coord = mapController.getRouteSolver()
+										.getCoordinatesByIndex(Integer.parseInt(line.split("\t")[0]));
+								MapPolygonImpl routPoly = new MapPolygonImpl(Color.BLUE, lastCoord, coord, coord);
+								routeLines.add(routPoly);
+								map().addMapPolygon(routPoly);
+								lastCoord = coord;
+							}
+						}
+						catch (Exception e1) {
+							e1.printStackTrace();
+							break;
+						}
+					}
+				}
+			}
+		});
+		panelBottom.add(buttonLoadShowAllPaths);
+
 		//
 		//		// Generate queries
 		//		JButton buttonGenerateQueries = new JButton("Generate queries");
@@ -400,7 +441,6 @@ public class JMapNavigatorMain extends JFrame implements JMapViewerEventListener
 			}
 		}
 	}
-
 
 
 

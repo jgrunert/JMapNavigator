@@ -515,6 +515,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 					}
 
 					System.out.println(startCluster.name + " " + Utils.calcVector2Dist(n0, n1));
+					System.out.println(n0 + "->" + n1);
 
 					c0 = new Coordinate(n0.Lat, n0.Lon);
 					c1 = new Coordinate(n1.Lat, n1.Lon);
@@ -589,7 +590,7 @@ public class QueryGeneratorMain extends JFrame implements JMapViewerEventListene
 			return;
 		}
 		new QueryGeneratorMain(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]))
-		.setVisible(true);
+				.setVisible(true);
 	}
 
 	private void updateZoomParameters() {

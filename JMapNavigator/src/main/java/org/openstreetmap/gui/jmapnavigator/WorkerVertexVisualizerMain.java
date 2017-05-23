@@ -431,9 +431,16 @@ public class WorkerVertexVisualizerMain extends JFrame implements JMapViewerEven
 						String s = lineSplit[i];
 						String text = (showTextIndex % 100) == 0 ? Integer.toString(iW) : "";
 						showTextIndex++;
-						if (!s.isEmpty())
-							dots.add(new MapMarkerDot(text, col,
-									routeSolver.getCoordinatesByIndex(Integer.parseInt(s)), 3));
+						if (!s.isEmpty()) {
+							Coordinate coord = routeSolver.getCoordinatesByIndex(Integer.parseInt(s));
+							if (coord != null) {
+								System.out.println(s);
+								dots.add(new MapMarkerDot(text, col, coord, 3));
+							}
+							else {
+								System.err.println("Failed to find coordinate of " + s);
+							}
+						}
 					}
 				}
 				else {

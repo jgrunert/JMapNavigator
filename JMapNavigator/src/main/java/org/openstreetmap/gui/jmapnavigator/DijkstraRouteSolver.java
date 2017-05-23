@@ -426,7 +426,9 @@ public class DijkstraRouteSolver implements IRouteSolver {
 
 	@Override
 	public Coordinate getCoordinatesByIndex(long index) {
-		return new Coordinate(mapNodes.get(index).Lat, mapNodes.get((long) index).Lon);
+		MapNode node = mapNodes.get(index);
+		if (node == null) return null;
+		return new Coordinate(node.Lat, node.Lon);
 	}
 
 	/**
